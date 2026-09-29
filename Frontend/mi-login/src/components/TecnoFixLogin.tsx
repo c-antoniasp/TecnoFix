@@ -3,9 +3,9 @@ import type { CSSProperties, FC, FormEvent } from "react";
 
 interface TecnoFixLoginProps {
   onSubmit?: (email: string, password: string) => void;
+  error?: string;
 }
-
-const TecnoFixLogin: FC<TecnoFixLoginProps> = ({ onSubmit }: TecnoFixLoginProps) => {
+const TecnoFixLogin: FC<TecnoFixLoginProps> = ({ onSubmit, error }: TecnoFixLoginProps) => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -31,7 +31,7 @@ const TecnoFixLogin: FC<TecnoFixLoginProps> = ({ onSubmit }: TecnoFixLoginProps)
     }
   }, []);
 
-  // Carga la fuente Inter desde Google Fonts (misma fuente usada en el HTML original)
+  // Carga la fuente Inter desde Google Fonts 
   useEffect(() => {
     const fontId = "tecnofix-inter-font";
     if (!document.getElementById(fontId)) {
@@ -156,7 +156,11 @@ const TecnoFixLogin: FC<TecnoFixLoginProps> = ({ onSubmit }: TecnoFixLoginProps)
                 </button>
               </div>
             </div>
-
+            {error && (
+              <p style={{ color: "#ef4444", fontSize: 14, margin: "8px 0" }}>
+                  {error}
+                    </p>
+                    )}
             <button type="submit" style={styles.btnPrimary}>
               Iniciar sesión
             </button>
