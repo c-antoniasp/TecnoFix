@@ -1,0 +1,1 @@
+public enum UserRole { ADMIN, TECHNICIAN, CLIENT }

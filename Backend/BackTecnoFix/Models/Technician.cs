@@ -1,11 +1,11 @@
 namespace TecnoFix.Models
 {
-      public class Client
+    public class Technician
     {
         public int id { get; set; }
         public int userId { get; set; }
         public User user { get; set; } = null!;
-        public string rut { get; set; } = string.Empty;
-        public string phone { get; set; } = string.Empty;
+        public string technicianType { get; set; } = string.Empty;
+        public bool enabled { get; set; } = true;
     }
 }

@@ -1,11 +1,9 @@
 namespace TecnoFix.Models
 {
-      public class Client
+     public class Administrator
     {
         public int id { get; set; }
         public int userId { get; set; }
         public User user { get; set; } = null!;
-        public string rut { get; set; } = string.Empty;
-        public string phone { get; set; } = string.Empty;
     }
 }
