@@ -22,12 +22,39 @@ namespace TecnoFix.Controllers
             try
             {
                 LoginResponseDTO response = await authService.login(request);
-                return Ok(response);
+
+                // El token viaja en una cookie HttpOnly (no en el body), para que
+                // JavaScript en el navegador no pueda leerlo. Se repite en cada
+                // request automáticamente gracias a credentials: "include" en el frontend.
+                Response.Cookies.Append("access_token", response.token, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    Expires = DateTimeOffset.UtcNow.AddMinutes(60)
+                });
+
+                // Al frontend solo le devolvemos lo que necesita mostrar en pantalla.
+                return Ok(new
+                {
+                    userId = response.userId,
+                    name = response.name,
+                    email = response.email,
+                    role = response.role
+                });
             }
             catch (AuthException ex)
             {
                 return StatusCode(ex.statusCode, new { message = ex.Message });
             }
+        }
+
+        // POST api/auth/logout
+        [HttpPost("logout")]
+        public IActionResult logout()
+        {
+            Response.Cookies.Delete("access_token");
+            return Ok(new { message = "Sesión cerrada" });
         }
     }
 }

@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react";
 import type { CSSProperties, FC, FormEvent } from "react";
+import { login } from "../Api/auth";
+import type { LoginResponse } from "../Api/auth";
 
 interface TecnoFixLoginProps {
-  onSubmit?: (email: string, password: string) => void;
-  error?: string;
+  // Se llama cuando el login en el backend fue exitoso.
+  onLoginSuccess?: (user: LoginResponse) => void;
 }
-const TecnoFixLogin: FC<TecnoFixLoginProps> = ({ onSubmit, error }: TecnoFixLoginProps) => {
+const TecnoFixLogin: FC<TecnoFixLoginProps> = ({ onLoginSuccess }: TecnoFixLoginProps) => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
   // Quita el margen/borde blanco por defecto que pone el navegador en <body>
   useEffect(() => {
@@ -44,9 +48,21 @@ const TecnoFixLogin: FC<TecnoFixLoginProps> = ({ onSubmit, error }: TecnoFixLogi
     }
   }, []);
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-    onSubmit?.(email, password);
+    setError("");
+    setLoading(true);
+    try {
+      // Llama a POST /api/auth/login. El backend valida formato de correo,
+      // campos vacíos y credenciales según la ERS (USU-001) y devuelve el
+      // mensaje exacto a mostrar si algo falla.
+      const user = await login({ email, password });
+      onLoginSuccess?.(user);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error desconocido");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -161,8 +177,8 @@ const TecnoFixLogin: FC<TecnoFixLoginProps> = ({ onSubmit, error }: TecnoFixLogi
                   {error}
                     </p>
                     )}
-            <button type="submit" style={styles.btnPrimary}>
-              Iniciar sesión
+            <button type="submit" style={styles.btnPrimary} disabled={loading}>
+              {loading ? "Ingresando..." : "Iniciar sesión"}
             </button>
           </form>
 
