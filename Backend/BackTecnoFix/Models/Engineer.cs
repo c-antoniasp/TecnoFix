@@ -2,7 +2,7 @@ namespace TecnoFix.Models
 {
     public class Engineer : User
     {
-        public string Role { get; set; } = string.Empty;
-        public bool isAvailable { get; set; } = true;
+        public string technicianType { get; set; } = string.Empty;
+        public bool enabled { get; set; } = true;
     }
 }
