@@ -74,6 +74,10 @@ builder.Services.AddSingleton<IClientRepository, ClientRepository>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IClientService, ClientService>();
 
+// Inyección de dependencias del registro de técnicos.
+builder.Services.AddScoped<IEngineerRepository, EngineerRepository>();
+builder.Services.AddScoped<ITechnicianService, TechnicianService>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
