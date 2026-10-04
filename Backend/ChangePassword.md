@@ -1,8 +1,8 @@
 # Cambio de contrasena (USU-004)
 
-Esta entrega implementa el cambio de contrasena en el backend. Utiliza la sesion
-del login del equipo; el login, sus pantallas y el modelo completo de usuarios
-siguen siendo componentes de integracion del proyecto.
+Esta entrega integra el cambio de contrasena con el login y logout del equipo.
+Los tres endpoints comparten un solo AuthController y AuthService. Login y
+cambio de contrasena utilizan el mismo UserRepository y AppDbContext.
 
 ## Contrato
 
@@ -49,11 +49,12 @@ Se utiliza el mismo `UserSecretsId` que el proyecto de login del equipo.
 Los secretos se configuran fuera del repositorio. Sin una clave valida, ninguna
 sesion puede acceder al endpoint.
 
-Al integrar las ramas, conservar los metodos `login` y `logout` del equipo junto
-con `changePassword`, tanto en `AuthController` como en `AuthService` y sus
-interfaces. Incorporar los metodos del repositorio de esta entrega sin quitar
-los metodos usados por el login. Conservar una sola definicion de `AuthException`;
-esta entrega utiliza su contrato `statusCode` y `Message`.
+El controlador conserva `login`, `logout` y `changePassword`; el servicio y su
+interfaz conservan `login` y `changePassword`. El repositorio implementa
+`findByEmail`, `isTechnicianDisabled`, `findPasswordById` y `updatePassword`.
+Hay una sola definicion de `AuthException`, con `statusCode` y `Message`.
+Se conservan el mapeo de tablas de Neon, el enum PostgreSQL `user_role` y la
+politica CORS `Frontend` para `http://localhost:5173` con credenciales.
 
 ## Pruebas
 
@@ -63,10 +64,12 @@ Desde `Backend`:
 dotnet test .\BackTecnoFix.Tests\BackTecnoFix.Tests.csproj
 ```
 
-Las pruebas validan las reglas de contrasena, autenticacion JWT, los tres roles,
-el usuario de la sesion, el borrado de la cookie y errores HTTP. Las consultas
-del repositorio se comprueban en SQLite en memoria con una tabla de prueba
+Las pruebas validan login, logout, las reglas de contrasena, autenticacion JWT,
+los tres roles, el usuario de la sesion, CORS, el borrado de la cookie y errores
+HTTP. Tambien comprueban login, cambio y nuevo login con las cookies reales
+del servidor de pruebas. Las consultas del repositorio se comprueban en SQLite
+en memoria con una tabla de prueba
 independiente; no se conecta a Neon ni se modifica ningun usuario real.
 
-`BackTecnoFix/TecnoFixBack.http` contiene peticiones manuales. Requieren el login
-integrado, los secretos configurados y un usuario de prueba registrado en Neon.
+`BackTecnoFix/TecnoFixBack.http` contiene peticiones manuales. Requieren los
+secretos configurados y un usuario de prueba registrado en Neon.

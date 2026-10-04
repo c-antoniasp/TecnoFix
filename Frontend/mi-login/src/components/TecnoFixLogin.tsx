@@ -1,14 +1,19 @@
 import { useEffect, useState } from "react";
 import type { CSSProperties, FC, FormEvent } from "react";
+import { login } from "../Api/auth";
+import type { LoginResponse } from "../Api/auth";
 
 interface TecnoFixLoginProps {
-  onSubmit?: (email: string, password: string) => void;
+  // Se llama cuando el login en el backend fue exitoso.
+  onLoginSuccess?: (user: LoginResponse) => void;
+  notice?: { message: string; type: "success" | "error" } | null;
 }
-
-const TecnoFixLogin: FC<TecnoFixLoginProps> = ({ onSubmit }: TecnoFixLoginProps) => {
+const TecnoFixLogin: FC<TecnoFixLoginProps> = ({ onLoginSuccess, notice }: TecnoFixLoginProps) => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
   // Quita el margen/borde blanco por defecto que pone el navegador en <body>
   useEffect(() => {
@@ -31,7 +36,7 @@ const TecnoFixLogin: FC<TecnoFixLoginProps> = ({ onSubmit }: TecnoFixLoginProps)
     }
   }, []);
 
-  // Carga la fuente Inter desde Google Fonts (misma fuente usada en el HTML original)
+  // Carga la fuente Inter desde Google Fonts 
   useEffect(() => {
     const fontId = "tecnofix-inter-font";
     if (!document.getElementById(fontId)) {
@@ -44,9 +49,21 @@ const TecnoFixLogin: FC<TecnoFixLoginProps> = ({ onSubmit }: TecnoFixLoginProps)
     }
   }, []);
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-    onSubmit?.(email, password);
+    setError("");
+    setLoading(true);
+    try {
+      // Llama a POST /api/auth/login. El backend valida formato de correo,
+      // campos vacíos y credenciales según la ERS (USU-001) y devuelve el
+      // mensaje exacto a mostrar si algo falla.
+      const user = await login({ email, password });
+      onLoginSuccess?.(user);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error desconocido");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -78,6 +95,22 @@ const TecnoFixLogin: FC<TecnoFixLoginProps> = ({ onSubmit }: TecnoFixLoginProps)
           <p style={styles.subtitle}>
             Ingresa con los datos que registraste para acceder a tu cuenta.
           </p>
+
+          {notice && (
+            <p
+              role={notice.type === "success" ? "status" : "alert"}
+              style={{
+                padding: "12px 14px",
+                borderRadius: 8,
+                fontSize: 14,
+                lineHeight: 1.5,
+                color: notice.type === "success" ? "#065F46" : "#991B1B",
+                background: notice.type === "success" ? "#D1FAE5" : "#FEE2E2",
+              }}
+            >
+              {notice.message}
+            </p>
+          )}
 
           <form onSubmit={handleSubmit}>
             <div style={styles.field}>
@@ -156,9 +189,13 @@ const TecnoFixLogin: FC<TecnoFixLoginProps> = ({ onSubmit }: TecnoFixLoginProps)
                 </button>
               </div>
             </div>
-
-            <button type="submit" style={styles.btnPrimary}>
-              Iniciar sesión
+            {error && (
+              <p style={{ color: "#ef4444", fontSize: 14, margin: "8px 0" }}>
+                  {error}
+                    </p>
+                    )}
+            <button type="submit" style={styles.btnPrimary} disabled={loading}>
+              {loading ? "Ingresando..." : "Iniciar sesión"}
             </button>
           </form>
 

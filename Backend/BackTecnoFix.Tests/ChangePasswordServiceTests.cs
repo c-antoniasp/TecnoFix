@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using TecnoFix.DTO;
 using TecnoFix.Services;
 
@@ -106,7 +107,7 @@ public class ChangePasswordServiceTests
     {
         var repository = new TestUserRepository();
         var otherUserHash = repository.passwordHashes[2];
-        var service = new AuthService(repository);
+        var service = new AuthService(repository, new ConfigurationBuilder().Build());
 
         await service.changePassword(1, ChangePasswordTestData.validRequest());
 
@@ -128,7 +129,8 @@ public class ChangePasswordServiceTests
     {
         var repository = new TestUserRepository();
         var exception = await Assert.ThrowsAsync<AuthException>(
-            () => new AuthService(repository).changePassword(userId, ChangePasswordTestData.validRequest()));
+            () => new AuthService(repository, new ConfigurationBuilder().Build())
+                .changePassword(userId, ChangePasswordTestData.validRequest()));
 
         Assert.Equal(401, exception.statusCode);
         Assert.Equal("Debe iniciar sesión nuevamente.", exception.Message);
@@ -149,7 +151,7 @@ public class ChangePasswordServiceTests
     {
         var originalPassword = repository.passwordHashes[1];
         var exception = await Assert.ThrowsAsync<AuthException>(
-            () => new AuthService(repository).changePassword(1, request));
+            () => new AuthService(repository, new ConfigurationBuilder().Build()).changePassword(1, request));
 
         Assert.Equal(statusCode, exception.statusCode);
         Assert.Equal(message, exception.Message);

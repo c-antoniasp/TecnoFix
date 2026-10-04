@@ -18,6 +18,37 @@ public class AuthController : ControllerBase
         this.authService = authService;
     }
 
+    [HttpPost("login")]
+    public async Task<IActionResult> login([FromBody] LoginRequestDTO request)
+    {
+        try
+        {
+            LoginResponseDTO response = await authService.login(request);
+            var cookieOptions = createSessionCookieOptions();
+            cookieOptions.Expires = DateTimeOffset.UtcNow.AddMinutes(60);
+            Response.Cookies.Append("access_token", response.token, cookieOptions);
+
+            return Ok(new
+            {
+                userId = response.userId,
+                name = response.name,
+                email = response.email,
+                role = response.role
+            });
+        }
+        catch (AuthException exception)
+        {
+            return StatusCode(exception.statusCode, new { message = exception.Message });
+        }
+    }
+
+    [HttpPost("logout")]
+    public IActionResult logout()
+    {
+        Response.Cookies.Delete("access_token", createSessionCookieOptions());
+        return Ok(new { message = "Sesión cerrada" });
+    }
+
     [HttpPut("change-password")]
     [Authorize]
     [ChangePasswordValidation]
@@ -34,13 +65,7 @@ public class AuthController : ControllerBase
         try
         {
             await authService.changePassword(userId, request);
-            Response.Cookies.Delete("access_token", new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None,
-                Path = "/"
-            });
+            Response.Cookies.Delete("access_token", createSessionCookieOptions());
             return Ok(new
             {
                 message = "Contraseña actualizada correctamente. Debe iniciar sesión nuevamente.",
@@ -52,4 +77,12 @@ public class AuthController : ControllerBase
             return StatusCode(exception.statusCode, new { message = exception.Message });
         }
     }
+
+    private static CookieOptions createSessionCookieOptions() => new()
+    {
+        HttpOnly = true,
+        Secure = true,
+        SameSite = SameSiteMode.None,
+        Path = "/"
+    };
 }

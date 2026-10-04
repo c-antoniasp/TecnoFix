@@ -1,4 +1,5 @@
 using TecnoFix.DTO;
+using TecnoFix.Models;
 using TecnoFix.Repositories;
 
 namespace BackTecnoFix.Tests;
@@ -27,6 +28,28 @@ internal sealed class TestUserRepository : IUserRepository
     internal int saveCount { get; private set; }
     internal int? requestedUserId { get; private set; }
     internal bool allowUpdate { get; set; } = true;
+    internal UserRole loginRole { get; set; } = UserRole.CLIENT;
+    internal bool technicianDisabled { get; set; }
+
+    public Task<User?> findByEmail(string email)
+    {
+        User? user = string.Equals(email, "user@example.test", StringComparison.OrdinalIgnoreCase)
+            ? new User
+            {
+                id = 1,
+                name = "Test user",
+                email = "user@example.test",
+                password = passwordHashes[1],
+                role = loginRole
+            }
+            : null;
+        return Task.FromResult(user);
+    }
+
+    public Task<bool> isTechnicianDisabled(int userId)
+    {
+        return Task.FromResult(userId == 1 && technicianDisabled);
+    }
 
     public Task<string?> findPasswordById(int userId)
     {
