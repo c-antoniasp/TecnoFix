@@ -62,6 +62,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 builder.Services.AddAuthorization();
 
+// Inyección de dependencias del registro de clientes (USU-002).
+builder.Services.AddSingleton<IClientRepository, ClientRepository>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IClientService, ClientService>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

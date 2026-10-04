@@ -1,0 +1,1 @@
+{"root":["./src/app.jsx","./src/main.jsx","./src/vite-env.d.ts","./src/api/auth.ts","./src/api/client.ts","./src/components/tecnofixclientdashboard.tsx","./src/components/tecnofixdashboard.tsx","./src/components/tecnofixlogin.tsx","./src/components/tecnofixregister.tsx"],"version":"5.9.3"}

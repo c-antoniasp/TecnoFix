@@ -6,8 +6,13 @@ import type { LoginResponse } from "../Api/auth";
 interface TecnoFixLoginProps {
   // Se llama cuando el login en el backend fue exitoso.
   onLoginSuccess?: (user: LoginResponse) => void;
+  onNavigateToRegister?: () => void;
 }
-const TecnoFixLogin: FC<TecnoFixLoginProps> = ({ onLoginSuccess }: TecnoFixLoginProps) => {
+
+const TecnoFixLogin: FC<TecnoFixLoginProps> = ({
+  onLoginSuccess,
+  onNavigateToRegister,
+}: TecnoFixLoginProps) => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -184,9 +189,13 @@ const TecnoFixLogin: FC<TecnoFixLoginProps> = ({ onLoginSuccess }: TecnoFixLogin
 
           <p style={styles.signupLine}>
             ¿No tienes una cuenta?{" "}
-            <a href="#" style={styles.signupLink}>
+            <button
+              type="button"
+              onClick={onNavigateToRegister}
+              style={styles.signupLink}
+            >
               Crear cuenta
-            </a>
+            </button>
           </p>
         </div>
 
@@ -352,9 +361,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: "#94A3B8",
   },
   signupLink: {
+    background: "none",
+    border: "none",
     color: "#059669",
     fontWeight: 700,
     textDecoration: "none",
+    cursor: "pointer",
+    fontSize: "inherit",
+    fontFamily: "inherit",
+    padding: 0,
   },
   welcomeSide: {
     background: "#F1F5F9",

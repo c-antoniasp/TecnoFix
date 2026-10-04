@@ -1,6 +1,45 @@
 @TecnoFixBack_HostAddress = http://localhost:5032
 
-GET {{TecnoFixBack_HostAddress}}/weatherforecast/
-Accept: application/json
+### 1. Registrar Cliente Exitosamente (201 Created)
+POST {{TecnoFixBack_HostAddress}}/api/cliente/registro
+Content-Type: application/json
 
-###
+{
+  "nombre": "Juan Perez",
+  "correo": "juan.perez@correo.cl",
+  "rut": "12345670K",
+  "telefono": "+56912345678"
+}
+
+### 2. Probar Validación: RUT con formato inválido (puntos o guion) (400 Bad Request)
+POST {{TecnoFixBack_HostAddress}}/api/cliente/registro
+Content-Type: application/json
+
+{
+  "nombre": "Maria Soto",
+  "correo": "maria.soto@correo.cl",
+  "rut": "12.345.678-5",
+  "telefono": "+56987654321"
+}
+
+### 3. Probar Validación: Campo obligatorio faltante (400 Bad Request)
+POST {{TecnoFixBack_HostAddress}}/api/cliente/registro
+Content-Type: application/json
+
+{
+  "nombre": "",
+  "correo": "test@correo.cl",
+  "rut": "12345670K",
+  "telefono": "+56912345678"
+}
+
+### 4. Probar Validación: Correo o RUT duplicado (409 Conflict)
+POST {{TecnoFixBack_HostAddress}}/api/cliente/registro
+Content-Type: application/json
+
+{
+  "nombre": "Juan Perez Duplicado",
+  "correo": "juan.perez@correo.cl",
+  "rut": "12345670K",
+  "telefono": "+56912345678"
+}
