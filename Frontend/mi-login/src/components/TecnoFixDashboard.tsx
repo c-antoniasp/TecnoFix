@@ -1,4 +1,5 @@
 import type { CSSProperties, Dispatch, FC, ReactNode, SetStateAction } from "react";
+import { UserRound } from "lucide-react";
 import "./TecnoFixDashboard.css";
 
 /*
@@ -197,17 +198,22 @@ const getTechnicianSummary = (orders: Order[]) => {
     .join(" · ");
 };
 
+export type DashboardRole = "Administrador" | "Técnico" | "Cliente";
+
 interface DashboardLayoutProps {
   children: ReactNode;
   active: string;
-  role: "Administrador" | "Técnico";
+  role: DashboardRole;
   userName: string;
   onNavigate?: (label: string) => void;
   onLogout?: () => void;
+  navigationDisabled?: boolean;
 }
 
-const DashboardLayout: FC<DashboardLayoutProps> = ({ children, active, role, userName, onNavigate, onLogout }) => {
-  const navItems = role === "Administrador" ? ["Resumen", "Órdenes", "Estadísticas"] : ["Resumen", "Órdenes", "Mis tareas"];
+export const DashboardLayout: FC<DashboardLayoutProps> = ({ children, active, role, userName, onNavigate, onLogout, navigationDisabled = false }) => {
+  const navItems = role === "Cliente"
+    ? ["Resumen"]
+    : role === "Administrador" ? ["Resumen", "Órdenes", "Estadísticas"] : ["Resumen", "Órdenes", "Mis tareas"];
 
   return (
     <div className="tf-dashboard">
@@ -230,6 +236,7 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({ children, active, role, use
                 type="button"
                 title={`Ir a ${item}`}
                 onClick={() => onNavigate?.(item)}
+                disabled={navigationDisabled}
               >
                 <span className="tf-navIcon">{item === "Resumen" ? "▣" : item === "Órdenes" ? "▤" : "◷"}</span>
                 {item}
@@ -238,12 +245,27 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({ children, active, role, use
           </nav>
 
           <div className="tf-sidebarFooter">
-            <div className="tf-footerIcon">👤</div>
-            <strong>{userName}</strong>
-            <span>{role}</span>
-            <button className="tf-button tf-buttonSmall" type="button" onClick={onLogout} title="Cerrar sesión">
-              Cerrar sesión
-            </button>
+            <div className="tf-footerIcon" aria-hidden="true"><UserRound size={18} /></div>
+            <div className="tf-footerIdentity">
+              <strong>{userName}</strong>
+              <span>{role}</span>
+            </div>
+            <div className="tf-footerActions">
+              <button
+                className={`tf-button tf-buttonSmall tf-profileButton ${active === "Mis datos" ? "is-active" : ""}`}
+                type="button"
+                onClick={() => onNavigate?.("Mis datos")}
+                disabled={navigationDisabled}
+                aria-current={active === "Mis datos" ? "page" : undefined}
+                title="Ver mis datos personales"
+              >
+                <UserRound size={16} aria-hidden="true" />
+                Mis datos
+              </button>
+              <button className="tf-button tf-buttonSmall" type="button" onClick={onLogout} title="Cerrar sesión" disabled={navigationDisabled}>
+                Cerrar sesión
+              </button>
+            </div>
           </div>
         </aside>
 

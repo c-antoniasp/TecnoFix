@@ -60,6 +60,7 @@ body { margin: 0; background: #E2E8F0; }
     text-align: left; cursor: pointer;
   }
   .tf-navButton:hover { background: var(--tf-canvas); color: var(--tf-ink); }
+  .tf-navButton:disabled { opacity: .6; cursor: not-allowed; }
   .tf-navButton.is-active { color: var(--tf-green-dark); font-weight: 800; }
   .tf-navButton.is-active::before {
     content: ""; position: absolute; left: -20px; top: 8px; bottom: 8px;
@@ -82,12 +83,66 @@ body { margin: 0; background: #E2E8F0; }
     display: grid; place-items: center;
     background: rgba(255,255,255,.14); margin-bottom: 14px; font-size: 16px;
   }
-  .tf-sidebarFooter strong { display: block; color: #FFFFFF; font-size: 15px; margin-bottom: 2px; }
+  .tf-sidebarFooter strong { display: block; color: #FFFFFF; font-size: 15px; margin-bottom: 2px; overflow-wrap: anywhere; }
   .tf-sidebarFooter span { color: #A7F3D0; font-size: 12px; }
+  .tf-footerIdentity { min-width: 0; }
+  .tf-footerActions { display: grid; gap: 8px; margin-top: 14px; }
   .tf-sidebarFooter .tf-button {
-    margin-top: 14px; width: 100%; border: 0;
+    min-height: 36px; width: 100%; border: 0;
     background: var(--tf-green); color: #052E1C;
   }
+  .tf-sidebarFooter .tf-profileButton {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    background: rgba(255,255,255,.08); color: #ECFDF5;
+    border: 1px solid rgba(167,243,208,.35);
+  }
+  .tf-sidebarFooter .tf-profileButton:hover,
+  .tf-sidebarFooter .tf-profileButton.is-active { background: rgba(255,255,255,.18); border-color: #A7F3D0; }
+  .tf-profileButton svg, .tf-profileBack svg { flex: none; }
+
+  /* Datos de la cuenta dentro del mismo panel autenticado. */
+  .tf-profile { min-height: 0; overflow-y: auto; padding: 8px 8px 24px; }
+  .tf-profileHeader { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+  .tf-profileHeader h1 { margin: 0; font-size: 24px; font-weight: 800; line-height: 1.25; letter-spacing: 0; }
+  .tf-profileBack { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 38px; }
+  .tf-profileBack:hover { background: #F8FAFC; }
+  .tf-profileIdentity { display: flex; align-items: center; gap: 16px; margin: 32px 0 24px; }
+  .tf-profileIdentity > div:last-child { min-width: 0; }
+  .tf-profileAvatar { width: 64px; height: 64px; flex: none; font-size: 24px; }
+  .tf-profileIdentity h2 { margin: 0 0 8px; font-size: 20px; line-height: 1.4; letter-spacing: 0; overflow-wrap: anywhere; }
+  .tf-profileRole { display: inline-block; color: var(--tf-green-dark); font-size: 13px; font-weight: 600; }
+  .tf-profileDetails { max-width: 760px; margin: 0; border-top: 1px solid #CBD5E1; }
+  .tf-profileDetails > div { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--tf-line); }
+  .tf-profileDetails dt { color: var(--tf-muted); font-size: 13px; line-height: 1.6; }
+  .tf-profileDetails dd { margin: 0; font-size: 14px; font-weight: 600; line-height: 1.6; overflow-wrap: anywhere; }
+
+  .tf-profileSecurity { max-width: 760px; margin-top: 24px; }
+  .tf-passwordTrigger, .tf-passwordActions .tf-buttonPrimary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; }
+  .tf-passwordTrigger svg, .tf-passwordActions svg { flex: none; }
+  .tf-passwordTrigger:hover, .tf-passwordActions .tf-buttonPrimary:hover { background: var(--tf-green-deep); }
+  .tf-passwordForm { max-width: 480px; }
+  .tf-passwordForm h2 { margin: 0 0 20px; font-size: 18px; line-height: 1.4; letter-spacing: 0; }
+  .tf-passwordForm fieldset { min-width: 0; margin: 0; padding: 0; border: 0; display: grid; gap: 18px; }
+  .tf-passwordField { display: grid; gap: 8px; min-width: 0; }
+  .tf-passwordField label { font-size: 13px; font-weight: 600; line-height: 1.5; }
+  .tf-passwordField .tf-input { width: 100%; height: 42px; border-radius: 8px; }
+  .tf-passwordField .tf-input:focus-visible { outline: 2px solid var(--tf-green); outline-offset: 2px; }
+  .tf-passwordField .tf-input[aria-invalid="true"] { border-color: #DC2626; }
+  .tf-passwordInput { position: relative; min-width: 0; }
+  .tf-passwordInput .tf-input { padding-right: 48px; }
+  .tf-passwordToggle {
+    position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+    width: 36px; height: 36px; padding: 0; border: 0; border-radius: 6px;
+    display: grid; place-items: center; background: transparent; color: var(--tf-muted); cursor: pointer;
+  }
+  .tf-passwordToggle:hover { background: var(--tf-canvas); color: var(--tf-green-dark); }
+  .tf-passwordToggle:focus-visible { outline: 2px solid var(--tf-green); outline-offset: 1px; }
+  .tf-passwordToggle:disabled { opacity: .6; cursor: not-allowed; }
+  .tf-passwordFieldError { margin: 0; font-size: 12px; color: #B91C1C; line-height: 1.5; overflow-wrap: anywhere; }
+  .tf-passwordRequestError { margin: 0 0 18px; padding: 12px 14px; border-radius: 8px; font-size: 13px; color: #991B1B; background: #FEE2E2; line-height: 1.5; overflow-wrap: anywhere; }
+  .tf-passwordActions { display: flex; flex-wrap: wrap; gap: 10px; }
+  .tf-passwordActions .tf-button { min-height: 40px; }
+  .tf-passwordActions .tf-button:disabled { opacity: .6; cursor: not-allowed; }
 
   /* ---------- Contenido ---------- */
   .tf-page { min-width: 0; min-height: 0; overflow: hidden; height: 100%; padding: 14px 16px 14px 6px; background: var(--tf-surface); }
@@ -241,11 +296,18 @@ body { margin: 0; background: #E2E8F0; }
     .tf-navButton.is-active::before { display: none; }
     .tf-navGroup { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .tf-navLabel { grid-column: 1 / -1; }
-    .tf-sidebarFooter { display: none; }
+    .tf-sidebarFooter { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 10px 12px; margin-top: 0; padding: 16px; border-radius: 18px; }
+    .tf-sidebarFooter .tf-footerIcon { margin-bottom: 0; align-self: center; }
+    .tf-footerActions { grid-column: 1 / -1; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 2px; }
     .tf-page { padding: 0 12px 12px; }
     .tf-canvas { padding: 16px; }
   }
   @media (max-width: 640px) {
+    .tf-profile { padding: 4px 0 16px; overflow: visible; }
+    .tf-profileHeader h1 { font-size: 22px; }
+    .tf-profileIdentity { margin: 24px 0; }
+    .tf-profileIdentity h2 { font-size: 18px; }
+    .tf-profileDetails > div { grid-template-columns: minmax(0, 1fr); gap: 4px; padding: 16px 0; }
     .tf-cardGrid { grid-template-columns: 1fr; }
     .tf-navGroup { grid-template-columns: 1fr; }
     .tf-topbar { flex-wrap: wrap; }

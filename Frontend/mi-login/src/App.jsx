@@ -1,16 +1,29 @@
 import { useState } from "react";
 import TecnoFixLogin from "./components/TecnoFixLogin";
 import TecnoFixDashboard from "./components/TecnoFixDashboard";
+import TecnoFixProfile from "./components/TecnoFixProfile";
 import { TecnoFixRegister } from "./components/TecnoFixRegister";
 import { TecnoFixClientDashboard } from "./components/TecnoFixClientDashboard";
 import { logout as apiLogout } from "./Api/auth";
+
+const ROLE_LABELS = {
+  ADMIN: "Administrador",
+  TECHNICIAN: "Técnico",
+  CLIENT: "Cliente",
+};
 
 function App() {
   // El token ya no se guarda en localStorage: vive en una cookie HttpOnly
   // que pone el backend, así que aquí solo recordamos los datos del usuario
   // mientras dura la pestaña (igual que en el proyecto de la Ayudantía).
   const [user, setUser] = useState(null);
-  const [currentView, setCurrentView] = useState("login"); // "login" | "register"
+  const [authView, setAuthView] = useState("login"); // "login" | "register"
+  const [view, setView] = useState("dashboard");
+  const [loginNotice, setLoginNotice] = useState(null);
+
+  const handleNavigate = (section) => {
+    setView(section === "Mis datos" ? "profile" : "dashboard");
+  };
 
   const handleLogout = async () => {
     try {
@@ -19,7 +32,17 @@ function App() {
       // Si falla el logout en el backend, igual cerramos la sesión en el front.
     }
     setUser(null);
-    setCurrentView("login");
+    setAuthView("login");
+    setView("dashboard");
+    setLoginNotice(null);
+  };
+
+  // El endpoint elimina la cookie al cambiar la contraseña; sincronizamos la UI.
+  const handleRequireLogin = (message, type) => {
+    setLoginNotice({ message, type });
+    setUser(null);
+    setAuthView("login");
+    setView("dashboard");
   };
 
   // Tras registrarse, el cliente entra directo a su dashboard (USU-002).
@@ -33,18 +56,40 @@ function App() {
   };
 
   if (user === null) {
-    if (currentView === "register") {
+    if (authView === "register") {
       return (
         <TecnoFixRegister
-          onBackToLogin={() => setCurrentView("login")}
+          onBackToLogin={() => setAuthView("login")}
           onRegisterSuccess={handleRegisterSuccess}
         />
       );
     }
     return (
       <TecnoFixLogin
-        onLoginSuccess={setUser}
-        onNavigateToRegister={() => setCurrentView("register")}
+        notice={loginNotice}
+        onLoginSuccess={(authenticatedUser) => {
+          setLoginNotice(null);
+          setUser(authenticatedUser);
+        }}
+        onNavigateToRegister={() => {
+          setLoginNotice(null);
+          setAuthView("register");
+        }}
+      />
+    );
+  }
+
+  const role = ROLE_LABELS[user.role];
+
+  if (view === "profile") {
+    return (
+      <TecnoFixProfile
+        user={user}
+        role={role}
+        onNavigate={handleNavigate}
+        onLogout={handleLogout}
+        onPasswordChanged={(message) => handleRequireLogin(message, "success")}
+        onSessionExpired={(message) => handleRequireLogin(message, "error")}
       />
     );
   }
@@ -58,7 +103,7 @@ function App() {
           email: user.email,
           rut: "",
           telefono: "",
-          rol: "Cliente",
+          rol: role,
         }}
         onLogout={handleLogout}
       />
@@ -68,7 +113,8 @@ function App() {
   return (
     <TecnoFixDashboard
       userName={user.name}
-      role={user.role === "ADMIN" ? "Administrador" : "Técnico"}
+      role={role}
+      onNavigate={handleNavigate}
       onLogout={handleLogout}
     />
   );

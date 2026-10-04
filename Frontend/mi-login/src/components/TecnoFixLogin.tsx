@@ -7,11 +7,13 @@ interface TecnoFixLoginProps {
   // Se llama cuando el login en el backend fue exitoso.
   onLoginSuccess?: (user: LoginResponse) => void;
   onNavigateToRegister?: () => void;
+  notice?: { message: string; type: "success" | "error" } | null;
 }
 
 const TecnoFixLogin: FC<TecnoFixLoginProps> = ({
   onLoginSuccess,
   onNavigateToRegister,
+  notice,
 }: TecnoFixLoginProps) => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -99,6 +101,22 @@ const TecnoFixLogin: FC<TecnoFixLoginProps> = ({
           <p style={styles.subtitle}>
             Ingresa con los datos que registraste para acceder a tu cuenta.
           </p>
+
+          {notice && (
+            <p
+              role={notice.type === "success" ? "status" : "alert"}
+              style={{
+                padding: "12px 14px",
+                borderRadius: 8,
+                fontSize: 14,
+                lineHeight: 1.5,
+                color: notice.type === "success" ? "#065F46" : "#991B1B",
+                background: notice.type === "success" ? "#D1FAE5" : "#FEE2E2",
+              }}
+            >
+              {notice.message}
+            </p>
+          )}
 
           <form onSubmit={handleSubmit}>
             <div style={styles.field}>

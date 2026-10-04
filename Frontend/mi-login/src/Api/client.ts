@@ -6,6 +6,16 @@ interface ApiErrorBody {
   message?: string;
 }
 
+export class ApiError extends Error {
+  readonly status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
 function extractErrorMessage(body: ApiErrorBody | null): string {
   if (body?.message) return body.message;
   return "Ocurrió un error inesperado, inténtelo nuevamente";
@@ -30,7 +40,7 @@ export async function apiFetch<TResponse>(
   const body = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(extractErrorMessage(body as ApiErrorBody));
+    throw new ApiError(response.status, extractErrorMessage(body as ApiErrorBody));
   }
 
   return body as TResponse;

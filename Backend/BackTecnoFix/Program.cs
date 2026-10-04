@@ -13,14 +13,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
-// Conexión a Neon 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
         npgsql => npgsql.MapEnum<UserRole>("user_role", nameTranslator: new NpgsqlNullNameTranslator())));
 
-// CORS: permite que el frontend de Vite (puerto 5173) llame al backend,
-// con AllowCredentials() para que el navegador pueda enviar/recibir la cookie del login.
 builder.Services.AddCors(options =>
     options.AddPolicy("Frontend", policy =>
         policy.WithOrigins("http://localhost:5173")
@@ -28,35 +25,45 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod()
               .AllowCredentials()));
 
-// Inyección de dependencias del login.
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
-// Autenticación con JWT.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        var jwtKey = builder.Configuration["Jwt:Key"];
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+            ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "TecnoFix",
+            ValidAudience = builder.Configuration["Jwt:Audience"] ?? "TecnoFixUsers",
+            IssuerSigningKey = string.IsNullOrWhiteSpace(jwtKey)
+                ? null
+                : new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
-        // El token ya no viaja en el header Authorization: se lee desde la cookie access_token.
         options.Events = new JwtBearerEvents
         {
             OnMessageReceived = context =>
             {
-                if (context.Request.Cookies.TryGetValue("access_token", out var token))
+                // Acepta la cookie del login y conserva el soporte para Bearer.
+                if (string.IsNullOrWhiteSpace(context.Request.Headers.Authorization))
                 {
-                    context.Token = token;
+                    context.Token = context.Request.Cookies["access_token"];
                 }
                 return Task.CompletedTask;
+            },
+            OnChallenge = async context =>
+            {
+                context.HandleResponse();
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                context.Response.Headers["WWW-Authenticate"] = JwtBearerDefaults.AuthenticationScheme;
+                await context.Response.WriteAsJsonAsync(new
+                {
+                    message = "Debe iniciar sesión para cambiar su contraseña."
+                });
             }
         };
     });
@@ -75,9 +82,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseRouting();
 app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+public partial class Program { }
