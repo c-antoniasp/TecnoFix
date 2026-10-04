@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { FC, CSSProperties } from "react";
+import { UserRound } from "lucide-react";
 
 export interface BitacoraItem {
   id: number;
@@ -49,6 +50,7 @@ export interface UserClient {
 
 interface TecnoFixClientDashboardProps {
   user: UserClient;
+  onNavigate: (section: string) => void;
   onLogout: () => void;
 }
 
@@ -215,6 +217,7 @@ const INITIAL_ORDERS: OrdenReparacion[] = [
 
 export const TecnoFixClientDashboard: FC<TecnoFixClientDashboardProps> = ({
   user,
+  onNavigate,
   onLogout,
 }) => {
   const [orders, setOrders] = useState<OrdenReparacion[]>(INITIAL_ORDERS);
@@ -228,14 +231,6 @@ export const TecnoFixClientDashboard: FC<TecnoFixClientDashboardProps> = ({
     actionType: "Aprobar" | "Rechazar" | null;
     orderId: string | null;
   }>({ isOpen: false, actionType: null, orderId: null });
-
-  // Modal Cambiar Contraseña (USU-004)
-  const [passwordModal, setPasswordModal] = useState<boolean>(false);
-  const [currentPass, setCurrentPass] = useState<string>("");
-  const [newPass, setNewPass] = useState<string>("");
-  const [confirmNewPass, setConfirmNewPass] = useState<string>("");
-  const [passError, setPassError] = useState<string>("");
-  const [passSuccess, setPassSuccess] = useState<string>("");
 
   // Toast / Alerta global
   const [toastMessage, setToastMessage] = useState<{
@@ -321,36 +316,6 @@ export const TecnoFixClientDashboard: FC<TecnoFixClientDashboardProps> = ({
     );
   };
 
-  // Manejo de Cambio de Contraseña (USU-004)
-  const handleChangePassword = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPassError("");
-    setPassSuccess("");
-
-    if (!currentPass) {
-      setPassError("Debe ingresar su contraseña actual.");
-      return;
-    }
-    if (newPass.length < 8 || !/[a-zA-Z]/.test(newPass) || !/[0-9]/.test(newPass)) {
-      setPassError("La contraseña debe tener al menos 8 caracteres, una letra y un número.");
-      return;
-    }
-    if (newPass !== confirmNewPass) {
-      setPassError("Las contraseñas ingresadas no coinciden.");
-      return;
-    }
-    if (newPass === currentPass) {
-      setPassError("La nueva contraseña debe ser distinta de la actual.");
-      return;
-    }
-
-    setPassSuccess("Contraseña modificada con éxito. Cerrando sesión...");
-    setTimeout(() => {
-      setPasswordModal(false);
-      onLogout();
-    }, 2000);
-  };
-
   // Filtros
   const filteredOrders = orders.filter((o) => {
     const matchStatus = filterStatus === "Todas" || o.estado === filterStatus;
@@ -430,11 +395,12 @@ export const TecnoFixClientDashboard: FC<TecnoFixClientDashboardProps> = ({
 
           <button
             type="button"
-            title="Cambiar su clave de acceso"
-            onClick={() => setPasswordModal(true)}
+            title="Ver mis datos personales"
+            onClick={() => onNavigate("Mis datos")}
             style={styles.headerBtnSecondary}
           >
-            🔑 Cambiar clave
+            <UserRound size={16} aria-hidden="true" />
+            Mis datos
           </button>
 
           <button
@@ -824,82 +790,6 @@ export const TecnoFixClientDashboard: FC<TecnoFixClientDashboardProps> = ({
         </div>
       )}
 
-      {/* MODAL CAMBIAR CONTRASEÑA (USU-004) */}
-      {passwordModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modalBox}>
-            <h3 style={styles.modalTitle}>Cambiar Contraseña</h3>
-            <p style={styles.modalText}>
-              Ingrese su contraseña actual y defina su nueva clave de acceso.
-            </p>
-
-            {passError && (
-              <div style={styles.errorBanner}>
-                <span>{passError}</span>
-              </div>
-            )}
-
-            {passSuccess && (
-              <div style={styles.successBanner}>
-                <span>{passSuccess}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleChangePassword}>
-              <div style={styles.field}>
-                <label style={styles.label}>Contraseña actual</label>
-                <input
-                  type="password"
-                  value={currentPass}
-                  onChange={(e) => setCurrentPass(e.target.value)}
-                  style={styles.modalInput}
-                  required
-                />
-              </div>
-
-              <div style={styles.field}>
-                <label style={styles.label}>Nueva contraseña</label>
-                <input
-                  type="password"
-                  placeholder="Mínimo 8 caracteres, 1 letra y 1 número"
-                  value={newPass}
-                  onChange={(e) => setNewPass(e.target.value)}
-                  style={styles.modalInput}
-                  required
-                />
-              </div>
-
-              <div style={styles.field}>
-                <label style={styles.label}>Confirmar nueva contraseña</label>
-                <input
-                  type="password"
-                  value={confirmNewPass}
-                  onChange={(e) => setConfirmNewPass(e.target.value)}
-                  style={styles.modalInput}
-                  required
-                />
-              </div>
-
-              <div style={styles.modalButtons}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPasswordModal(false);
-                    setPassError("");
-                    setPassSuccess("");
-                  }}
-                  style={styles.btnModalCancel}
-                >
-                  Cerrar
-                </button>
-                <button type="submit" style={styles.btnModalConfirm}>
-                  Guardar nueva contraseña
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
@@ -932,6 +822,8 @@ const styles: { [key: string]: CSSProperties } = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
+    flexWrap: "wrap",
+    gap: 16,
     boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
   },
   headerLeft: {
@@ -962,6 +854,8 @@ const styles: { [key: string]: CSSProperties } = {
     display: "flex",
     alignItems: "center",
     gap: 18,
+    flexWrap: "wrap",
+    minWidth: 0,
   },
   userInfo: {
     display: "flex",
@@ -994,6 +888,10 @@ const styles: { [key: string]: CSSProperties } = {
     fontSize: 13,
     fontWeight: 600,
     cursor: "pointer",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 8,
+    fontFamily: "inherit",
   },
   headerBtnLogout: {
     background: "#334155",

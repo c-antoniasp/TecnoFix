@@ -81,34 +81,41 @@ function App() {
 
   const role = ROLE_LABELS[user.role];
 
-  if (view === "profile") {
-    return (
-      <TecnoFixProfile
-        user={user}
-        role={role}
-        onNavigate={handleNavigate}
-        onLogout={handleLogout}
-        onPasswordChanged={(message) => handleRequireLogin(message, "success")}
-        onSessionExpired={(message) => handleRequireLogin(message, "error")}
-      />
-    );
-  }
+  const profile = view === "profile" ? (
+    <TecnoFixProfile
+      user={user}
+      role={role}
+      onNavigate={handleNavigate}
+      onLogout={handleLogout}
+      onPasswordChanged={(message) => handleRequireLogin(message, "success")}
+      onSessionExpired={(message) => handleRequireLogin(message, "error")}
+    />
+  ) : null;
 
   if (user.role === "CLIENT") {
     return (
-      <TecnoFixClientDashboard
-        user={{
-          id: user.userId,
-          nombre: user.name,
-          email: user.email,
-          rut: "",
-          telefono: "",
-          rol: role,
-        }}
-        onLogout={handleLogout}
-      />
+      <>
+        {profile}
+        {/* Conserva órdenes, filtros y decisiones al volver desde Mis datos. */}
+        <div hidden={view === "profile"}>
+          <TecnoFixClientDashboard
+            user={{
+              id: user.userId,
+              nombre: user.name,
+              email: user.email,
+              rut: "",
+              telefono: "",
+              rol: role,
+            }}
+            onNavigate={handleNavigate}
+            onLogout={handleLogout}
+          />
+        </div>
+      </>
     );
   }
+
+  if (profile) return profile;
 
   return (
     <TecnoFixDashboard
