@@ -142,6 +142,7 @@ function App() {
           rol: role,
         }}
         onLogout={handleLogout}
+        onOpenProfile={() => handleNavigate("Mis datos")}
       />
     );
   }

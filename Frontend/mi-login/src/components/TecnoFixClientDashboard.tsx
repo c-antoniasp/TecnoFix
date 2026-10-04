@@ -50,6 +50,8 @@ export interface UserClient {
 interface TecnoFixClientDashboardProps {
   user: UserClient;
   onLogout: () => void;
+  // Abre "Mis datos" (USU-003), donde se cambia la contraseña contra el backend.
+  onOpenProfile?: () => void;
 }
 
 // Datos iniciales de demostración con órdenes en diferentes estados del ciclo de vida
@@ -216,6 +218,7 @@ const INITIAL_ORDERS: OrdenReparacion[] = [
 export const TecnoFixClientDashboard: FC<TecnoFixClientDashboardProps> = ({
   user,
   onLogout,
+  onOpenProfile,
 }) => {
   const [orders, setOrders] = useState<OrdenReparacion[]>(INITIAL_ORDERS);
   const [selectedOrder, setSelectedOrder] = useState<OrdenReparacion | null>(INITIAL_ORDERS[0]);
@@ -430,11 +433,11 @@ export const TecnoFixClientDashboard: FC<TecnoFixClientDashboardProps> = ({
 
           <button
             type="button"
-            title="Cambiar su clave de acceso"
-            onClick={() => setPasswordModal(true)}
+            title="Ver sus datos y cambiar su clave de acceso"
+            onClick={() => (onOpenProfile ? onOpenProfile() : setPasswordModal(true))}
             style={styles.headerBtnSecondary}
           >
-            🔑 Cambiar clave
+            🔑 Mis datos
           </button>
 
           <button
