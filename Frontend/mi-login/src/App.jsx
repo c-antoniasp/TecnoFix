@@ -4,7 +4,10 @@ import TecnoFixDashboard from "./components/TecnoFixDashboard";
 import TecnoFixProfile from "./components/TecnoFixProfile";
 import { TecnoFixRegister } from "./components/TecnoFixRegister";
 import { TecnoFixClientDashboard } from "./components/TecnoFixClientDashboard";
+import TecnoFixRegisterTechnician from "./components/TecnoFixRegisterTechnician";
 import { logout as apiLogout } from "./Api/auth";
+import { ApiError } from "./Api/client";
+import { registerTechnician } from "./Api/technician";
 
 const ROLE_LABELS = {
   ADMIN: "Administrador",
@@ -20,9 +23,15 @@ function App() {
   const [authView, setAuthView] = useState("login"); // "login" | "register"
   const [view, setView] = useState("dashboard");
   const [loginNotice, setLoginNotice] = useState(null);
+  const [techRegError, setTechRegError] = useState(null);
+  const [techRegSuccess, setTechRegSuccess] = useState(null);
 
   const handleNavigate = (section) => {
-    setView(section === "Mis datos" ? "profile" : "dashboard");
+    setTechRegError(null);
+    setTechRegSuccess(null);
+    if (section === "Mis datos") setView("profile");
+    else if (section === "Técnicos") setView("registerTechnician");
+    else setView("dashboard");
   };
 
   const handleLogout = async () => {
@@ -79,7 +88,34 @@ function App() {
     );
   }
 
+  // Registro de técnicos: solo el administrador (el backend exige rol ADMIN).
+  const handleRegisterTechnician = async (name, email, specialty) => {
+    try {
+      const data = await registerTechnician({ name, email, specialty });
+      setTechRegSuccess(data.message);
+      setTechRegError(null);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        handleRequireLogin("Su sesión expiró. Inicie sesión nuevamente.", "error");
+        return;
+      }
+      setTechRegError(err instanceof Error ? err.message : "No se pudo conectar con el servidor");
+      setTechRegSuccess(null);
+    }
+  };
+
   const role = ROLE_LABELS[user.role];
+
+  if (view === "registerTechnician" && user.role === "ADMIN") {
+    return (
+      <TecnoFixRegisterTechnician
+        onSubmit={handleRegisterTechnician}
+        error={techRegError}
+        successMessage={techRegSuccess}
+        onBack={() => handleNavigate("Resumen")}
+      />
+    );
+  }
 
   const profile = view === "profile" ? (
     <TecnoFixProfile
