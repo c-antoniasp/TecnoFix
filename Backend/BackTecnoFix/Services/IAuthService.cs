@@ -4,6 +4,6 @@ namespace TecnoFix.Services
 {
     public interface IAuthService
     {
-        Task changePassoword(int userId, ChangePasswordRequestDTO request);
+        Task changePassword(int userId, ChangePasswordRequestDTO? request);
     }
 }

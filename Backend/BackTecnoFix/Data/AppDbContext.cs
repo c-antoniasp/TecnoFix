@@ -10,4 +10,12 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<User> users => Set<User>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<Admin>();
+        modelBuilder.Entity<Engineer>();
+        modelBuilder.Entity<Client>();
+    }
 }

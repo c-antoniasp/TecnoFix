@@ -1,6 +1,84 @@
-@TecnoFixBack_HostAddress = http://localhost:5032
+@hostAddress = http://localhost:5032
+@accessToken = TOKEN_EMITIDO_POR_EL_LOGIN_DEL_EQUIPO
+@currentPassword = Actual123
+@newPassword = Nueva1234
 
-GET {{TecnoFixBack_HostAddress}}/weatherforecast/
-Accept: application/json
+### Ajusta accessToken y currentPassword a una sesion y usuario de prueba.
+### Con cookie de sesion, sustituye Authorization por Cookie: access_token=<token>.
+### Sin sesion: HTTP 401, sin consultar la base de datos.
+PUT {{hostAddress}}/api/auth/change-password
+Content-Type: application/json
+
+{
+  "currentPassword": "{{currentPassword}}",
+  "newPassword": "{{newPassword}}",
+  "confirmPassword": "{{newPassword}}"
+}
+
+### Campo obligatorio: HTTP 400, sin consultar la base de datos.
+PUT {{hostAddress}}/api/auth/change-password
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "currentPassword": "",
+  "newPassword": "{{newPassword}}",
+  "confirmPassword": "{{newPassword}}"
+}
+
+### Contraseña actual incorrecta: HTTP 400.
+PUT {{hostAddress}}/api/auth/change-password
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "currentPassword": "Incorrecta123",
+  "newPassword": "{{newPassword}}",
+  "confirmPassword": "{{newPassword}}"
+}
+
+### Nueva contraseña demasiado corta: HTTP 400.
+PUT {{hostAddress}}/api/auth/change-password
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "currentPassword": "{{currentPassword}}",
+  "newPassword": "Abc1234",
+  "confirmPassword": "Abc1234"
+}
+
+### Confirmación diferente: HTTP 400.
+PUT {{hostAddress}}/api/auth/change-password
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "currentPassword": "{{currentPassword}}",
+  "newPassword": "{{newPassword}}",
+  "confirmPassword": "Otra1234"
+}
+
+### Nueva contraseña igual a la actual: HTTP 400.
+PUT {{hostAddress}}/api/auth/change-password
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "currentPassword": "{{currentPassword}}",
+  "newPassword": "{{currentPassword}}",
+  "confirmPassword": "{{currentPassword}}"
+}
+
+### Cambio válido: HTTP 200. Ejecutar al final; cambia la contraseña del usuario.
+PUT {{hostAddress}}/api/auth/change-password
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "currentPassword": "{{currentPassword}}",
+  "newPassword": "{{newPassword}}",
+  "confirmPassword": "{{newPassword}}"
+}
 
 ###
