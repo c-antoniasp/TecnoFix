@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { FC, CSSProperties } from "react";
 import { UserRound } from "lucide-react";
+import TecnoFixGear from "./TecnoFixGear";
 
 export interface BitacoraItem {
   id: number;
@@ -375,10 +376,7 @@ export const TecnoFixClientDashboard: FC<TecnoFixClientDashboardProps> = ({
       <header style={styles.header}>
         <div style={styles.headerLeft}>
           <div style={styles.brandIcon}>
-            <svg viewBox="0 0 24 24" fill="none" width={22} height={22}>
-              <path d="M12 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z" stroke="#0F172A" strokeWidth={2} />
-              <path d="M19.4 13.5a7.6 7.6 0 000-3l1.9-1.5-1.5-2.6-2.3.6a7.7 7.7 0 00-2.6-1.5L14.5 3h-3l-.4 2.5a7.7 7.7 0 00-2.6 1.5l-2.3-.6-1.5 2.6L6.6 10.5a7.6 7.6 0 000 3l-1.9 1.5 1.5 2.6 2.3-.6a7.7 7.7 0 002.6 1.5l.4 2.5h3l.4-2.5a7.7 7.7 0 002.6-1.5l2.3.6 1.5-2.6-1.9-1.5z" stroke="#0F172A" strokeWidth={2} strokeLinejoin="round" />
-            </svg>
+            <TecnoFixGear size={26} />
           </div>
           <div>
             <h1 style={styles.brandTitle}>TecnoFix</h1>

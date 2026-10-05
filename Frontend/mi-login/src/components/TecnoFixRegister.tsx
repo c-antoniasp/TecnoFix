@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { FC, FormEvent, CSSProperties } from "react";
 import { API_BASE_URL } from "../Api/client";
+import TecnoFixGear from "./TecnoFixGear";
 
 interface TecnoFixRegisterProps {
   onBackToLogin: () => void;
@@ -82,10 +83,7 @@ export const TecnoFixRegister: FC<TecnoFixRegisterProps> = ({
         <div style={styles.formSide}>
           <div style={styles.brand}>
             <span style={styles.brandIcon}>
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width={20} height={20}>
-                <path d="M12 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z" stroke="#0F172A" strokeWidth={1.8} />
-                <path d="M19.4 13.5a7.6 7.6 0 000-3l1.9-1.5-1.5-2.6-2.3.6a7.7 7.7 0 00-2.6-1.5L14.5 3h-3l-.4 2.5a7.7 7.7 0 00-2.6 1.5l-2.3-.6-1.5 2.6L6.6 10.5a7.6 7.6 0 000 3l-1.9 1.5 1.5 2.6 2.3-.6a7.7 7.7 0 002.6 1.5l.4 2.5h3l.4-2.5a7.7 7.7 0 002.6-1.5l2.3.6 1.5-2.6-1.9-1.5z" stroke="#0F172A" strokeWidth={1.8} strokeLinejoin="round" strokeLinecap="round" />
-              </svg>
+              <TecnoFixGear size={24} />
             </span>
             <span style={styles.brandName}>TecnoFix</span>
           </div>

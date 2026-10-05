@@ -1,6 +1,7 @@
 import type { CSSProperties, Dispatch, FC, ReactNode, SetStateAction } from "react";
 import { UserRound } from "lucide-react";
 import "./TecnoFixDashboard.css";
+import TecnoFixGear from "./TecnoFixGear";
 
 /*
  * TecnoFixDashboard — Solo UI, no es funcional.
@@ -220,7 +221,7 @@ export const DashboardLayout: FC<DashboardLayoutProps> = ({ children, active, ro
       <div className="tf-shell">
         <aside className="tf-sidebar">
           <div className="tf-brand">
-            <div className="tf-brandIcon">⚙</div>
+            <div className="tf-brandIcon"><TecnoFixGear size={26} /></div>
             <div>
               <div className="tf-brandTitle">TecnoFix</div>
               <div className="tf-brandText">Gestión de reparaciones</div>
