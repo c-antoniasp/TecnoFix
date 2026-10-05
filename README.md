@@ -9,6 +9,8 @@ El sistema permitirá administrar el ciclo completo de una orden de reparación,
 
 Proyecto desarrollado para la asignatura **Ingeniería de Software — Segundo Semestre 2026**.
 
+**Aplicación desplegada:** https://tecno-fix-six.vercel.app
+
 ---
 
 ## Funcionalidades Principales
@@ -68,98 +70,153 @@ Cada cambio de estado queda registrado en una bitácora con fecha, hora y usuari
 
 ---
 
+## Estado del Proyecto
+
+**En desarrollo.**
+
+### Módulos implementados
+
+| Requerimiento | Módulo | Backend | Frontend |
+|---|---|---|---|
+| USU-001 | Inicio de sesión por rol con JWT en cookie HttpOnly | ✅ | ✅ |
+| USU-002 | Registro de clientes con contraseña temporal | ✅ | ✅ |
+| USU-003 / USU-004 | Ver datos personales y cambiar contraseña | ✅ | ✅ |
+| — | Registro de técnicos (solo administrador) | ✅ | ✅ |
+| — | Panel por rol (administrador, técnico y cliente) | — | ✅ (datos de demostración) |
+
+### Pendientes conocidos
+
+- Los clientes registrados se guardan **en memoria** (`ClientRepository`), no en PostgreSQL: se pierden al reiniciar el backend y no pueden iniciar sesión.
+- La contraseña temporal del registro de clientes no se cifra con BCrypt.
+- La contraseña temporal del registro de técnicos no se envía al técnico, por lo que no puede iniciar sesión.
+- El envío de correos (`EmailService`) solo registra el mensaje en el log; no envía correos reales.
+- Los paneles muestran órdenes de demostración; la gestión de órdenes, diagnósticos y presupuestos aún no está conectada al backend.
+
+---
+
 ## Stack Tecnológico
 
 ### Backend
 
 - **Lenguaje:** C#
-- **Framework:** .NET 10
-- **Arquitectura:** Clean Architecture
+- **Framework:** ASP.NET Core (.NET 10)
+- **ORM:** Entity Framework Core con Npgsql
+- **Autenticación:** JWT almacenado en cookie HttpOnly, contraseñas con BCrypt
 - **Patrones:** MVC, Repository Pattern y arquitectura en capas
+- **Pruebas:** xUnit (proyecto `BackTecnoFix.Tests`)
 
 ### Frontend
 
-- **Lenguaje:** TypeScript
+- **Lenguaje:** TypeScript / JavaScript
 - **Framework:** React (Vite)
 - **Arquitectura:** Basada en componentes
+- **Íconos:** lucide-react
 - **Gestión de paquetes:** NPM
-- **Entorno:** Node.js
 
 ### Base de Datos
 
 - **DBMS:** PostgreSQL
 - **Plataforma:** Neon
 
+### Despliegue
+
+- **Frontend:** Vercel
+- **Backend:** Render (contenedor Docker)
+- **Base de datos:** Neon
+
 ---
 
-## Estructura Actual
+## Estructura del Proyecto
 
 ```text
 TecnoFix/
 │
 ├── Backend/
-│   └── BackTecnoFix/
-│       ├── Controller/
-│       ├── Data/
-│       ├── DTO/
-│       │   ├── LoginRequestDTO.cs
-│       │   └── LoginResponseDTO.cs
-│       ├── Models/
-│       │   ├── Admin.cs
-│       │   ├── Client.cs
-│       │   ├── Engineer.cs
-│       │   └── User.cs
-│       ├── Properties/
-│       ├── Services/
-│       ├── Program.cs
-│       ├── BackTecnoFix.csproj
-│       └── appsettings.json
+│   ├── BackTecnoFix/
+│   │   ├── Controller/          # ClienteController, TechnicianController
+│   │   ├── Controllers/         # AuthController (login, logout, cambio de contraseña)
+│   │   ├── Data/                # AppDbContext y repositorio de clientes
+│   │   ├── DTO/                 # Objetos de entrada y salida de la API
+│   │   ├── Exceptions/
+│   │   ├── Models/              # User, Client, Technician, Administrator, UserRole
+│   │   ├── Repositories/        # UserRepository, EngineerRepository, TechnicianService
+│   │   ├── Services/            # AuthService, ClientService, EmailService
+│   │   ├── Program.cs
+│   │   ├── Dockerfile
+│   │   ├── TecnoFixBack.http    # Peticiones de ejemplo para probar la API
+│   │   └── appsettings.json
+│   ├── BackTecnoFix.Tests/      # Pruebas de login y cambio de contraseña
+│   └── ChangePassword.md        # Detalle del contrato de cambio de contraseña
 │
 ├── Frontend/
 │   └── mi-login/
-│       ├── public/
+│       ├── public/              # favicon.svg
 │       ├── src/
-│       │   ├── components/
-│       │   │   └── TecnoFixLogin.tsx
-│       │   ├── App.jsx
+│       │   ├── Api/             # Cliente HTTP (auth.ts, client.ts, technician.ts)
+│       │   ├── components/      # Pantallas: login, registro, paneles, perfil, técnicos
+│       │   ├── App.jsx          # Navegación entre pantallas según sesión y rol
 │       │   └── main.jsx
 │       ├── index.html
 │       ├── package.json
 │       └── vite.config.js
 │
-├── .gitattributes
-├── .gitignore
 └── README.md
 ```
 
-Los directorios `bin/`, `obj/` y `node_modules/` generados automáticamente se encuentran excluidos del control de versiones mediante `.gitignore`.
+Los directorios `bin/`, `obj/`, `dist/` y `node_modules/` se generan automáticamente y están excluidos del control de versiones.
 
 ---
 
-## Arquitectura
+## API
 
-TecnoFix contempla el uso de **Clean Architecture** para mantener una adecuada separación de responsabilidades, alta cohesión y bajo acoplamiento.
+| Método | Ruta | Descripción | Acceso |
+|---|---|---|---|
+| `POST` | `/api/auth/login` | Inicia sesión y deja el JWT en la cookie `access_token` | Público |
+| `POST` | `/api/auth/logout` | Cierra la sesión eliminando la cookie | Público |
+| `PUT` | `/api/auth/change-password` | Cambia la contraseña del usuario autenticado | Usuario con sesión |
+| `POST` | `/api/cliente/registro` | Registra un cliente con contraseña temporal | Público |
+| `POST` | `/api/technician` | Registra un técnico | Administrador |
 
-El Backend utilizará:
-
-- MVC.
-- Repository Pattern.
-- Arquitectura en capas.
-
-El Frontend se desarrolla mediante una arquitectura basada en componentes, usando React con TypeScript y Vite como entorno de desarrollo y build.
+Los errores responden con un JSON `{ "message": "..." }` con el texto definido en la ERS. En `Backend/BackTecnoFix/TecnoFixBack.http` hay ejemplos de cada petición.
 
 ---
 
-## Frontend
+## Cómo ejecutar el proyecto en local
 
-El frontend vive en `Frontend/mi-login/` y se construye con **React + TypeScript sobre Vite**.
+### Requisitos
 
-Hasta el momento se implementó:
+- [.NET SDK 10](https://dotnet.microsoft.com/download)
+- [Node.js](https://nodejs.org/) 20.19 o superior
+- Acceso a la base de datos de Neon
 
-- **Pantalla de inicio de sesión** (`src/components/TecnoFixLogin.tsx`), con formulario controlado (email y contraseña), toggle de mostrar/ocultar contraseña, validación básica de campos y una prop `onSubmit` para conectar la autenticación con el backend.
-- Estilos propios del componente (sin dependencias externas de CSS), incluyendo la carga de la tipografía Inter y el reset de márgenes del navegador.
+### 1. Backend
 
-### Cómo correr el frontend
+Los secretos no se guardan en el repositorio. Configúralos una sola vez con *user secrets*, desde `Backend/BackTecnoFix`:
+
+```bash
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=...;Database=...;Username=...;Password=...;SSL Mode=Require"
+dotnet user-secrets set "Jwt:Key" "una-clave-larga-de-al-menos-32-caracteres"
+```
+
+La cadena de conexión debe estar en formato `Host=...;Database=...` (en Neon: **Connect → .NET**), no en formato `postgresql://...`.
+
+Luego ejecuta:
+
+```bash
+cd Backend/BackTecnoFix
+dotnet run
+```
+
+La API queda disponible en `http://localhost:5032`.
+
+Para correr las pruebas:
+
+```bash
+cd Backend/BackTecnoFix.Tests
+dotnet test
+```
+
+### 2. Frontend
 
 ```bash
 cd Frontend/mi-login
@@ -167,27 +224,43 @@ npm install
 npm run dev
 ```
 
-La app queda disponible en `http://localhost:5173` (o el siguiente puerto libre, ej. `5174`).
+La app queda disponible en `http://localhost:5173`. Por defecto se conecta al backend en `http://localhost:5032/api`.
 
 ---
 
-## Estado del Proyecto
+## Despliegue
 
-**En desarrollo.**
+Cada push a `main` despliega automáticamente el frontend en Vercel y el backend en Render.
 
-Actualmente se encuentra implementada:
+### Frontend (Vercel)
 
-- La estructura inicial del Backend en .NET, incluyendo los modelos `User`, `Client`, `Engineer` y `Admin`, y los DTOs de login (`LoginRequestDTO`, `LoginResponseDTO`).
-- La interfaz de inicio de sesión del Frontend en React + TypeScript.
+- **Root Directory:** `Frontend/mi-login`
+- **Framework Preset:** Vite
+- **Variable de entorno:** `VITE_API_URL` = URL del backend terminada en `/api`
 
-Las siguientes etapas contemplan la implementación progresiva de:
+Vite incluye `VITE_API_URL` al compilar, por lo que después de cambiarla hay que hacer **Redeploy**.
 
-- Conexión del formulario de login con el Backend (autenticación real).
-- Persistencia con PostgreSQL y Neon.
-- Autorización por roles.
-- Repository Pattern.
-- Gestión de órdenes, diagnósticos y presupuestos.
-- Resto de pantallas del Frontend (registro, dashboard por rol, gestión de órdenes, etc.).
+### Backend (Render)
+
+- **Tipo:** Web Service con lenguaje **Docker**
+- **Root Directory:** `Backend/BackTecnoFix`
+- **Variables de entorno:**
+
+| Variable | Valor |
+|---|---|
+| `ConnectionStrings__DefaultConnection` | Cadena de conexión de Neon en formato `Host=...;Database=...` |
+| `Jwt__Key` | Clave para firmar los JWT (mínimo 32 caracteres) |
+| `Cors__AllowedOrigins__0` | URL del frontend, sin `/` al final (ej. `https://tecno-fix-six.vercel.app`) |
+
+En el plan gratuito de Render el servicio se suspende tras 15 minutos sin uso; la primera petición después de eso puede tardar alrededor de 50 segundos.
+
+---
+
+## Flujo de trabajo con Git
+
+- Cada integrante trabaja en su rama `DevNombre`.
+- Los cambios se integran primero en `test` y, una vez revisados, en `main`.
+- `main` es la rama que se despliega en producción.
 
 ---
 
