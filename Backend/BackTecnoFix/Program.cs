@@ -75,7 +75,7 @@ builder.Services.AddAuthorization();
 
 // Inyección de dependencias del registro de clientes (USU-002).
 builder.Services.AddScoped<IClientRepository, ClientRepository>();
-// Correo con Resend (Resend__ApiKey); sin la clave, los correos solo se registran en el log.
+// Correo con Brevo (Brevo__ApiKey y Brevo__SenderEmail); sin ellos, los correos solo se registran en el log.
 builder.Services.AddHttpClient<IEmailService, EmailService>();
 builder.Services.AddScoped<IClientService, ClientService>();
 
