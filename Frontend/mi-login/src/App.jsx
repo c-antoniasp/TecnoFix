@@ -40,6 +40,10 @@ function App() {
       } else {
         setSuccessRegTech(data.message);
         setErrorRegTech(null);
+
+        setTimeout(() => {
+          setCurrentScreen("dashboard");
+        },1500);
       }
     } catch (err) {
       setErrorRegTech("No se pudo conectar con el servidor");

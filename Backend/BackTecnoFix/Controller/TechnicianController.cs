@@ -6,11 +6,13 @@ using TecnoFix.Services;
 
 namespace TecnoFix.Controller
 {
+    // Controlador exclusivo para la gestión de técnicos
     [ApiController]
     [Route("api/technician")]
     [Authorize(Roles = "ADMIN")]
     public class TechnicianController : ControllerBase
     {
+        // Se inyecta el servicio que maneja validaciones y acceso a BD
         private readonly ITechnicianService _technicianService;
 
         public TechnicianController(ITechnicianService technicianService)
@@ -23,6 +25,7 @@ namespace TecnoFix.Controller
         {
             try
             {
+                // Invoca la lógica de encriptación (BCrypt) e inserción (Neon)
                 await _technicianService.registerTechnician(request);
                 return Ok(new { message = "Técnico registrado exitosamente." });
             }
