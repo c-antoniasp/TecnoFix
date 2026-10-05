@@ -72,8 +72,6 @@ Cada cambio de estado queda registrado en una bitácora con fecha, hora y usuari
 
 ## Estado del Proyecto
 
-**En desarrollo.**
-
 ### Módulos implementados
 
 | Requerimiento | Módulo | Backend | Frontend |
@@ -83,14 +81,6 @@ Cada cambio de estado queda registrado en una bitácora con fecha, hora y usuari
 | USU-003 / USU-004 | Ver datos personales y cambiar contraseña | ✅ | ✅ |
 | — | Registro de técnicos (solo administrador) | ✅ | ✅ |
 | — | Panel por rol (administrador, técnico y cliente) | — | ✅ (datos de demostración) |
-
-### Pendientes conocidos
-
-- Los clientes registrados se guardan **en memoria** (`ClientRepository`), no en PostgreSQL: se pierden al reiniciar el backend y no pueden iniciar sesión.
-- La contraseña temporal del registro de clientes no se cifra con BCrypt.
-- La contraseña temporal del registro de técnicos no se envía al técnico, por lo que no puede iniciar sesión.
-- El envío de correos (`EmailService`) solo registra el mensaje en el log; no envía correos reales.
-- Los paneles muestran órdenes de demostración; la gestión de órdenes, diagnósticos y presupuestos aún no está conectada al backend.
 
 ---
 
