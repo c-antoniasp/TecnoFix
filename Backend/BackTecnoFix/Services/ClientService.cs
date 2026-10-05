@@ -163,7 +163,18 @@ Por seguridad, recuerde cambiar su contraseña una vez haya iniciado sesión.
 Atentamente,
 Equipo TecnoFix";
 
-        await _emailService.SendEmailAsync(cleanEmail, subject, body);
+        try
+        {
+            await _emailService.SendEmailAsync(cleanEmail, subject, body);
+        }
+        catch (InvalidOperationException)
+        {
+            return new RegisterClientResponseDto
+            {
+                Success = false,
+                Message = "El cliente fue registrado, pero no se pudo enviar el correo con su contraseña temporal"
+            };
+        }
 
         // 10. Retorno de respuesta exitosa
         return new RegisterClientResponseDto

@@ -241,6 +241,8 @@ Vite incluye `VITE_API_URL` al compilar, por lo que después de cambiarla hay qu
 | `ConnectionStrings__DefaultConnection` | Cadena de conexión de Neon en formato `Host=...;Database=...` |
 | `Jwt__Key` | Clave para firmar los JWT (mínimo 32 caracteres) |
 | `Cors__AllowedOrigins__0` | URL del frontend, sin `/` al final (ej. `https://tecno-fix-six.vercel.app`) |
+| `Resend__ApiKey` | API key de [Resend](https://resend.com) para enviar las contraseñas temporales por correo |
+| `Resend__From` | Remitente, ej. `TecnoFix <no-reply@tudominio.cl>` (opcional; por defecto `onboarding@resend.dev`) |
 
 En el plan gratuito de Render el servicio se suspende tras 15 minutos sin uso; la primera petición después de eso puede tardar alrededor de 50 segundos.
 

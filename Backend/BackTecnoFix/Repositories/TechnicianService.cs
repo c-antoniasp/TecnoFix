@@ -10,11 +10,13 @@ namespace TecnoFix.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IEngineerRepository _engineerRepository;
+        private readonly IEmailService _emailService;
 
-        public TechnicianService(IUserRepository userRepository, IEngineerRepository engineerRepository)
+        public TechnicianService(IUserRepository userRepository, IEngineerRepository engineerRepository, IEmailService emailService)
         {
             _userRepository = userRepository;
             _engineerRepository = engineerRepository;
+            _emailService = emailService;
         }
 
         public async Task registerTechnician(RegisterTechnicianRequestDTO request)
@@ -50,6 +52,27 @@ namespace TecnoFix.Services
             };
 
             await _engineerRepository.add(newTechnician);
+
+            // Envía la contraseña temporal al técnico para que pueda iniciar sesión.
+            string subject = "Bienvenido a TecnoFix - Su contraseña temporal de acceso";
+            string body = $@"Estimado/a {request.name},
+
+Ha sido registrado como técnico en TecnoFix.
+Su contraseña temporal para iniciar sesión es: {tempPassword}
+
+Por seguridad, cámbiela desde ""Mis datos"" después de iniciar sesión.
+
+Atentamente,
+Equipo TecnoFix";
+
+            try
+            {
+                await _emailService.SendEmailAsync(request.email, subject, body);
+            }
+            catch (InvalidOperationException)
+            {
+                throw new BusinessException("El técnico fue registrado, pero no se pudo enviar el correo con su contraseña temporal");
+            }
         }
 
         private string generateRandomPassword(int length)
