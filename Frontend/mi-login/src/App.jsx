@@ -94,6 +94,8 @@ function App() {
       const data = await registerTechnician({ name, email, specialty });
       setTechRegSuccess(data.message);
       setTechRegError(null);
+      // Muestra el mensaje de éxito y vuelve al panel.
+      setTimeout(() => handleNavigate("Resumen"), 1500);
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         handleRequireLogin("Su sesión expiró. Inicie sesión nuevamente.", "error");
