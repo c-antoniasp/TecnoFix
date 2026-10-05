@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { FC, FormEvent, CSSProperties } from "react";
+import { API_BASE_URL } from "../Api/client";
 
 interface TecnoFixRegisterProps {
   onBackToLogin: () => void;
@@ -44,7 +45,7 @@ export const TecnoFixRegister: FC<TecnoFixRegisterProps> = ({
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5032/api/cliente/registro", {
+      const response = await fetch(`${API_BASE_URL}/cliente/registro`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

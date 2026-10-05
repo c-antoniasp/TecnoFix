@@ -1,6 +1,6 @@
 // Dirección base del backend. En desarrollo apunta a localhost;
 // al desplegar, se define con la variable de entorno VITE_API_URL.
-const API_BASE_URL = (import.meta.env.VITE_API_URL as string) || "http://localhost:5032/api";
+export const API_BASE_URL = (import.meta.env.VITE_API_URL as string) || "http://localhost:5032/api";
 
 interface ApiErrorBody {
   message?: string;
@@ -28,14 +28,20 @@ export async function apiFetch<TResponse>(
   path: string,
   options: RequestInit = {}
 ): Promise<TResponse> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+    });
+  } catch {
+    // fetch solo falla así cuando no hay respuesta (servidor caído, sin red o CORS).
+    throw new ApiError(0, "No se pudo conectar con el servidor, inténtelo nuevamente");
+  }
 
   const body = await response.json().catch(() => null);
 
