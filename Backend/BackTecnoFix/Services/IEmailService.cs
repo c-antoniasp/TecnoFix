@@ -10,6 +10,7 @@ public interface IEmailService
     /// </summary>
     /// <param name="to">Dirección de correo destino.</param>
     /// <param name="subject">Asunto del correo.</param>
-    /// <param name="body">Cuerpo o mensaje del correo.</param>
-    Task SendEmailAsync(string to, string subject, string body);
+    /// <param name="body">Cuerpo del correo en texto plano.</param>
+    /// <param name="htmlBody">Cuerpo del correo en HTML (opcional).</param>
+    Task SendEmailAsync(string to, string subject, string body, string? htmlBody = null);
 }

@@ -9,14 +9,17 @@ interface TecnoFixLoginProps {
   onLoginSuccess?: (user: LoginResponse) => void;
   onNavigateToRegister?: () => void;
   notice?: { message: string; type: "success" | "error" } | null;
+  // Correo con el que se completa el formulario, por ejemplo tras registrarse.
+  initialEmail?: string;
 }
 
 const TecnoFixLogin: FC<TecnoFixLoginProps> = ({
   onLoginSuccess,
   onNavigateToRegister,
   notice,
+  initialEmail = "",
 }: TecnoFixLoginProps) => {
-  const [email, setEmail] = useState<string>("");
+  const [email, setEmail] = useState<string>(initialEmail);
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [error, setError] = useState<string>("");

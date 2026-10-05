@@ -1,4 +1,6 @@
 using System.Net.Http.Headers;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace TecnoFix.Services;
 
@@ -12,6 +14,12 @@ public class EmailService : IEmailService
     private const string ResendEndpoint = "https://api.resend.com/emails";
     // Remitente de pruebas de Resend; solo puede enviar al correo dueño de la cuenta.
     private const string DefaultFrom = "TecnoFix <onboarding@resend.dev>";
+
+    // Omite "html" cuando no se envía cuerpo HTML.
+    private static readonly JsonSerializerOptions SkipNullsOptions = new()
+    {
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
 
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
@@ -28,7 +36,7 @@ public class EmailService : IEmailService
     /// Envía un correo electrónico mediante Resend, o lo registra en el log si Resend no está configurado.
     /// </summary>
     /// <exception cref="InvalidOperationException">Si Resend rechaza el envío.</exception>
-    public async Task SendEmailAsync(string to, string subject, string body)
+    public async Task SendEmailAsync(string to, string subject, string body, string? htmlBody = null)
     {
         var apiKey = _configuration["Resend:ApiKey"];
 
@@ -56,8 +64,9 @@ public class EmailService : IEmailService
                 from,
                 to = new[] { to },
                 subject,
-                text = body
-            })
+                text = body,
+                html = htmlBody
+            }, options: SkipNullsOptions)
         };
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 

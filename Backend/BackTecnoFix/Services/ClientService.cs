@@ -140,7 +140,7 @@ public class ClientService : IClientService
             {
                 name = cleanNombre,
                 email = cleanEmail,
-                password = temporaryPassword, // Nota: En producción esto debe ser hasheado (ej. BCrypt)
+                password = BCrypt.Net.BCrypt.HashPassword(temporaryPassword),
                 role = UserRole.CLIENT
             },
             rut = cleanRut,
@@ -150,22 +150,15 @@ public class ClientService : IClientService
         var savedClient = await _clientRepository.AddAsync(newClient);
 
         // 9. Envío de correo electrónico con la contraseña temporal
-        string subject = "Bienvenido a TecnoFix - Su contraseña temporal de acceso";
-        string body = $@"Estimado/a {cleanNombre},
-
-Su registro en TecnoFix ha sido completado exitosamente.
-A continuación, le proporcionamos su contraseña temporal de 8 caracteres para iniciar sesión en el sistema:
-
-Contraseña temporal: {temporaryPassword}
-
-Por seguridad, recuerde cambiar su contraseña una vez haya iniciado sesión.
-
-Atentamente,
-Equipo TecnoFix";
+        const string roleDescription = "Su registro en TecnoFix ha sido completado exitosamente.";
 
         try
         {
-            await _emailService.SendEmailAsync(cleanEmail, subject, body);
+            await _emailService.SendEmailAsync(
+                cleanEmail,
+                EmailTemplates.TemporaryPasswordSubject,
+                EmailTemplates.TemporaryPasswordText(cleanNombre, temporaryPassword, roleDescription),
+                EmailTemplates.TemporaryPasswordHtml(cleanNombre, temporaryPassword, roleDescription));
         }
         catch (InvalidOperationException)
         {

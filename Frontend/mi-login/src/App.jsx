@@ -25,6 +25,7 @@ function App() {
   const [loginNotice, setLoginNotice] = useState(null);
   const [techRegError, setTechRegError] = useState(null);
   const [techRegSuccess, setTechRegSuccess] = useState(null);
+  const [registeredEmail, setRegisteredEmail] = useState("");
 
   const handleNavigate = (section) => {
     setTechRegError(null);
@@ -54,14 +55,15 @@ function App() {
     setView("dashboard");
   };
 
-  // Tras registrarse, el cliente entra directo a su dashboard (USU-002).
-  const handleRegisterSuccess = (registeredEmail) => {
-    setUser({
-      userId: 0,
-      name: registeredEmail.split("@")[0].replace(".", " ").replace(/\b\w/g, (l) => l.toUpperCase()),
-      email: registeredEmail,
-      role: "CLIENT",
+  // Tras registrarse, el cliente vuelve al login para entrar con la contraseña
+  // temporal que recibió por correo (USU-002).
+  const handleRegisterSuccess = (email) => {
+    setRegisteredEmail(email);
+    setLoginNotice({
+      message: "Registro exitoso. Revise su correo e inicie sesión con la contraseña temporal que le enviamos.",
+      type: "success",
     });
+    setAuthView("login");
   };
 
   if (user === null) {
@@ -75,6 +77,8 @@ function App() {
     }
     return (
       <TecnoFixLogin
+        key={registeredEmail}
+        initialEmail={registeredEmail}
         notice={loginNotice}
         onLoginSuccess={(authenticatedUser) => {
           setLoginNotice(null);

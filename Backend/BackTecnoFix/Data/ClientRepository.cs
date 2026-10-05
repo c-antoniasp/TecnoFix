@@ -1,60 +1,67 @@
-using System.Collections.Concurrent;
+using Microsoft.EntityFrameworkCore;
 using TecnoFix.Models;
 
 namespace TecnoFix.Data;
 
 /// <summary>
-/// Implementación en memoria del repositorio de clientes (Thread-safe).
-/// Permite almacenar y consultar clientes temporalmente hasta la configuración de PostgreSQL.
+/// Repositorio de clientes persistido en PostgreSQL (Neon) mediante Entity Framework.
+/// Cada cliente se guarda en la tabla "Client" junto a su usuario en la tabla "User".
 /// </summary>
 public class ClientRepository : IClientRepository
 {
-    private readonly ConcurrentDictionary<int, Client> _clients = new();
-    private int _currentId = 0;
+    private readonly AppDbContext _dbContext;
+
+    public ClientRepository(AppDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
 
     /// <summary>
-    /// Consulta si un correo ya está registrado en el repositorio.
+    /// Consulta si el correo ya pertenece a cualquier usuario (cliente, técnico o administrador),
+    /// ya que el correo es el identificador para iniciar sesión.
     /// </summary>
     public Task<bool> ExistsByEmailAsync(string email)
     {
-        var exists = _clients.Values.Any(c => c.user.email.Equals(email, StringComparison.OrdinalIgnoreCase));
-        return Task.FromResult(exists);
+        var normalizedEmail = email.Trim().ToLower();
+        return _dbContext.users.AnyAsync(u => u.email.ToLower() == normalizedEmail);
     }
 
     /// <summary>
-    /// Consulta si un RUT ya está registrado en el repositorio.
+    /// Consulta si un RUT ya está registrado.
     /// </summary>
     public Task<bool> ExistsByRutAsync(string rut)
     {
-        var cleanRut = rut.Trim().ToUpperInvariant();
-        var exists = _clients.Values.Any(c => c.rut.Trim().ToUpperInvariant().Equals(cleanRut, StringComparison.OrdinalIgnoreCase));
-        return Task.FromResult(exists);
+        var cleanRut = rut.Trim().ToUpper();
+        return _dbContext.clients.AnyAsync(c => c.rut.ToUpper() == cleanRut);
     }
 
     /// <summary>
-    /// Registra un nuevo cliente asignándole un identificador correlativo.
+    /// Registra un nuevo cliente y su usuario; la base de datos asigna los identificadores.
     /// </summary>
-    public Task<Client> AddAsync(Client client)
+    public async Task<Client> AddAsync(Client client)
     {
-        client.id = Interlocked.Increment(ref _currentId);
-        _clients[client.id] = client;
-        return Task.FromResult(client);
+        _dbContext.clients.Add(client);
+        await _dbContext.SaveChangesAsync();
+        return client;
     }
 
     /// <summary>
-    /// Obtiene un cliente por su ID.
+    /// Obtiene un cliente por su ID, incluyendo los datos de su usuario.
     /// </summary>
     public Task<Client?> GetByIdAsync(int id)
     {
-        _clients.TryGetValue(id, out var client);
-        return Task.FromResult(client);
+        return _dbContext.clients
+            .Include(c => c.user)
+            .FirstOrDefaultAsync(c => c.id == id);
     }
 
     /// <summary>
-    /// Retorna todos los clientes registrados.
+    /// Retorna todos los clientes registrados, incluyendo los datos de su usuario.
     /// </summary>
-    public Task<IEnumerable<Client>> GetAllAsync()
+    public async Task<IEnumerable<Client>> GetAllAsync()
     {
-        return Task.FromResult<IEnumerable<Client>>(_clients.Values.ToList());
+        return await _dbContext.clients
+            .Include(c => c.user)
+            .ToListAsync();
     }
 }
