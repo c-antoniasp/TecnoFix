@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { FC, FormEvent } from "react";
 
 interface RegisterTechnicianProps {
@@ -13,24 +13,31 @@ const TecnoFixRegisterTechnician: FC<RegisterTechnicianProps> = ({ onSubmit, err
   const [email, setEmail] = useState<string>("");
   const [specialty, setSpecialty] = useState<string>("");
   
-  // Nuevo estado para controlar la ventana de confirmación
   const [showConfirm, setShowConfirm] = useState<boolean>(false);
+  
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  
+  useEffect(() => {
+    if (error || successMessage) {
+      setIsSubmitting(false);
+    }
+  }, [error, successMessage]);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
-    // En lugar de enviar inmediatamente, mostramos la confirmación
     setShowConfirm(true);
   };
 
   const handleConfirm = (): void => {
-    setShowConfirm(false);
-    onSubmit(name, email, specialty);
+    setShowConfirm(false); // Cierra el modal
+    setIsSubmitting(true); // Cambia el texto del botón principal a "Registrando..."
+    onSubmit(name, email, specialty); 
   };
 
   return (
     <div style={styles.page}>
       
-      {/* Modal de Confirmación */}
       {showConfirm && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalContent}>
@@ -82,6 +89,7 @@ const TecnoFixRegisterTechnician: FC<RegisterTechnicianProps> = ({ onSubmit, err
                   onFocus={(e) => { e.currentTarget.style.borderColor = "#34D399"; }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = "#CBD5E1"; }}
                   required
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -99,6 +107,7 @@ const TecnoFixRegisterTechnician: FC<RegisterTechnicianProps> = ({ onSubmit, err
                   onFocus={(e) => { e.currentTarget.style.borderColor = "#34D399"; }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = "#CBD5E1"; }}
                   required
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -116,16 +125,30 @@ const TecnoFixRegisterTechnician: FC<RegisterTechnicianProps> = ({ onSubmit, err
                   onFocus={(e) => { e.currentTarget.style.borderColor = "#34D399"; }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = "#CBD5E1"; }}
                   required
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
 
             <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
-              <button type="button" onClick={onBack} style={styles.btnSecondary}>
+              <button 
+                type="button" 
+                onClick={onBack} 
+                style={styles.btnSecondary}
+                disabled={isSubmitting}
+              >
                 Volver
               </button>
-              <button type="submit" style={styles.btnPrimary}>
-                Registrar
+              <button 
+                type="submit" 
+                disabled={isSubmitting}
+                style={{
+                  ...styles.btnPrimary,
+                  opacity: isSubmitting ? 0.7 : 1,
+                  cursor: isSubmitting ? "not-allowed" : "pointer"
+                }}
+              >
+                {isSubmitting ? "Registrando..." : "Registrar"}
               </button>
             </div>
           </form>
@@ -222,6 +245,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: 15,
     fontWeight: 700,
     cursor: "pointer",
+    transition: "all 0.2s ease"
   },
   btnSecondary: {
     flex: 1,
@@ -234,7 +258,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 700,
     cursor: "pointer",
   },
-  // Estilos del modal flotante
   modalOverlay: {
     position: "fixed",
     top: 0,
