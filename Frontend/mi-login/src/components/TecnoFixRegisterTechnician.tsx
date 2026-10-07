@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { FormEvent } from "react";
+import type { FC, FormEvent } from "react";
 
 interface RegisterTechnicianProps {
   onSubmit: (name: string, email: string, specialty: string) => void;
@@ -8,18 +8,56 @@ interface RegisterTechnicianProps {
   onBack: () => void;
 }
 
-const TecnoFixRegisterTechnician = ({ onSubmit, error, successMessage, onBack }: RegisterTechnicianProps) => {
+const TecnoFixRegisterTechnician: FC<RegisterTechnicianProps> = ({ onSubmit, error, successMessage, onBack }) => {
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [specialty, setSpecialty] = useState<string>("");
+  
+  // Nuevo estado para controlar la ventana de confirmación
+  const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
+    // En lugar de enviar inmediatamente, mostramos la confirmación
+    setShowConfirm(true);
+  };
+
+  const handleConfirm = (): void => {
+    setShowConfirm(false);
     onSubmit(name, email, specialty);
   };
 
   return (
     <div style={styles.page}>
+      
+      {/* Modal de Confirmación */}
+      {showConfirm && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalContent}>
+            <h3 style={styles.modalTitle}>Confirmar registro</h3>
+            <p style={styles.modalText}>
+              ¿Estás seguro de que deseas registrar a <strong>{name}</strong> como técnico?
+            </p>
+            <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
+              <button 
+                type="button" 
+                onClick={() => setShowConfirm(false)} 
+                style={styles.btnSecondary}
+              >
+                Cancelar
+              </button>
+              <button 
+                type="button" 
+                onClick={handleConfirm} 
+                style={styles.btnPrimary}
+              >
+                Sí, registrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={styles.card}>
         <div style={styles.formSide}>
           <h1 style={styles.title}>Registrar Técnico</h1>
@@ -27,7 +65,6 @@ const TecnoFixRegisterTechnician = ({ onSubmit, error, successMessage, onBack }:
             Ingresa los datos para habilitar a un nuevo técnico en el sistema.
           </p>
 
-          {/* Mensajes de feedback */}
           {error && <div style={styles.errorMessage}>{error}</div>}
           {successMessage && <div style={styles.successMessage}>{successMessage}</div>}
 
@@ -98,7 +135,6 @@ const TecnoFixRegisterTechnician = ({ onSubmit, error, successMessage, onBack }:
   );
 };
 
-// Estilos adaptados de la paleta oficial
 const styles: { [key: string]: React.CSSProperties } = {
   page: {
     fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
@@ -109,6 +145,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: "40px 20px",
     background: "linear-gradient(135deg, #0F172A 0%, #1E293B 45%, #065F46 100%)",
     boxSizing: "border-box",
+    position: "relative",
   },
   card: {
     width: "100%",
@@ -138,7 +175,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: 24,
   },
   errorMessage: {
-    color: "#F56558", // Color de error obligatorio NF01
+    color: "#F56558",
     backgroundColor: "#FEE2E2",
     padding: "12px",
     borderRadius: "8px",
@@ -196,6 +233,41 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: 15,
     fontWeight: 700,
     cursor: "pointer",
+  },
+  // Estilos del modal flotante
+  modalOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(15, 23, 42, 0.7)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1000,
+    padding: "20px",
+    boxSizing: "border-box",
+  },
+  modalContent: {
+    background: "#FFFFFF",
+    padding: "32px",
+    borderRadius: "16px",
+    maxWidth: "400px",
+    width: "100%",
+    boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 700,
+    color: "#0F172A",
+    margin: "0 0 12px 0",
+  },
+  modalText: {
+    fontSize: 15,
+    color: "#475569",
+    lineHeight: 1.5,
+    margin: 0,
   }
 };
 
