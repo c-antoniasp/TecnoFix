@@ -1,15 +1,20 @@
--- TecnoFix: migración de Neon al modelo de 4 tablas (nombres en inglés).
--- Reemplaza "User", "Client", "Technician", "Administrator", "RepairOrder",
--- "Diagnosis" y "OrderLog" por users, equipment_types, repair_orders y order_logs.
+-- TecnoFix: migración de Neon al modelo de 4 tablas (nombres en inglés). FASE 1 de 3.
+--
+--   Fase 1  2026-10-27_new_schema.sql      Crea users, equipment_types, repair_orders y
+--                                          order_logs y copia los usuarios. NO borra nada:
+--                                          el backend anterior sigue usando "User", "Client", etc.
+--   Fase 2  2026-10-27_sync_users.sql      Copia los usuarios creados en las tablas antiguas
+--                                          después de la fase 1 (se puede repetir sin riesgo).
+--   Fase 3  2026-10-27_drop_old_tables.sql Elimina las tablas antiguas. Solo cuando el backend
+--                                          nuevo esté desplegado y verificado. NO tiene vuelta atrás.
+--
+-- Orden de despliegue: fase 1 -> desplegar backend y frontend nuevos -> fase 2 -> verificar -> fase 3.
 --
 -- Requisitos: los enums user_role (ADMIN, TECHNICIAN, CLIENT) y order_status
 -- (RECEIVED, IN_DIAGNOSIS, QUOTED, IN_REPAIR, READY_FOR_PICKUP, DELIVERED, REJECTED)
 -- ya existen y se reutilizan sin cambios.
 --
 -- Se ejecuta en UNA transacción: si falla una verificación, no se aplica nada.
--- Despliegue: aplicar esta migración y desplegar el backend adaptado (rama
--- feature/new-db-schema) al mismo tiempo; el backend anterior deja de funcionar
--- con el esquema nuevo y viceversa.
 
 BEGIN;
 
@@ -96,6 +101,5 @@ BEGIN
   END IF;
 END $$;
 
-DROP TABLE "OrderLog", "Diagnosis", "RepairOrder", "Technician", "Client", "Administrator", "User";
 
 COMMIT;
