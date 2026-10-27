@@ -3,7 +3,6 @@ import TecnoFixLogin from "./components/TecnoFixLogin";
 import TecnoFixDashboard from "./components/TecnoFixDashboard";
 import TecnoFixProfile from "./components/TecnoFixProfile";
 import { TecnoFixRegister } from "./components/TecnoFixRegister";
-import { TecnoFixClientDashboard } from "./components/TecnoFixClientDashboard";
 import TecnoFixRegisterTechnician from "./components/TecnoFixRegisterTechnician";
 import { logout as apiLogout } from "./Api/auth";
 import { ApiError } from "./Api/client";
@@ -133,29 +132,6 @@ function App() {
       onSessionExpired={(message) => handleRequireLogin(message, "error")}
     />
   ) : null;
-
-  if (user.role === "CLIENT") {
-    return (
-      <>
-        {profile}
-        {/* Conserva órdenes, filtros y decisiones al volver desde Mis datos. */}
-        <div hidden={view === "profile"}>
-          <TecnoFixClientDashboard
-            user={{
-              id: user.userId,
-              nombre: user.name,
-              email: user.email,
-              rut: "",
-              telefono: "",
-              rol: role,
-            }}
-            onNavigate={handleNavigate}
-            onLogout={handleLogout}
-          />
-        </div>
-      </>
-    );
-  }
 
   if (profile) return profile;
 

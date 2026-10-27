@@ -3,6 +3,7 @@ import type { CSSProperties, FC, FormEvent } from "react";
 import { login } from "../Api/auth";
 import type { LoginResponse } from "../Api/auth";
 import TecnoFixGear from "./TecnoFixGear";
+import { VALIDATION_MESSAGES, isValidEmail, requiredFieldMessage } from "../utils/validation";
 
 interface TecnoFixLoginProps {
   // Se llama cuando el login en el backend fue exitoso.
@@ -62,12 +63,26 @@ const TecnoFixLogin: FC<TecnoFixLoginProps> = ({
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setError("");
+
+    // Mismas validaciones y mensajes que el backend (USU-001), antes de llamarlo.
+    if (!email.trim()) {
+      setError(requiredFieldMessage("Correo electrónico"));
+      return;
+    }
+    if (!password) {
+      setError(requiredFieldMessage("Contraseña"));
+      return;
+    }
+    if (!isValidEmail(email.trim())) {
+      setError(VALIDATION_MESSAGES.invalidEmail);
+      return;
+    }
+
     setLoading(true);
     try {
-      // Llama a POST /api/auth/login. El backend valida formato de correo,
-      // campos vacíos y credenciales según la ERS (USU-001) y devuelve el
-      // mensaje exacto a mostrar si algo falla.
-      const user = await login({ email, password });
+      // Llama a POST /api/auth/login. El backend vuelve a validar y comprueba las
+      // credenciales; devuelve el mensaje exacto a mostrar si algo falla.
+      const user = await login({ email: email.trim(), password });
       onLoginSuccess?.(user);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");
@@ -109,7 +124,7 @@ const TecnoFixLogin: FC<TecnoFixLoginProps> = ({
             </p>
           )}
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} noValidate>
             <div style={styles.field}>
               <label htmlFor="email" style={styles.label}>
                 Correo electrónico
@@ -160,7 +175,6 @@ const TecnoFixLogin: FC<TecnoFixLoginProps> = ({
                     e.currentTarget.style.boxShadow = "none";
                   }}
                   required
-                  minLength={8}
                 />
                 <button
                   type="button"
@@ -192,7 +206,7 @@ const TecnoFixLogin: FC<TecnoFixLoginProps> = ({
                     </p>
                     )}
             <button type="submit" style={styles.btnPrimary} disabled={loading}>
-              {loading ? "Ingresando..." : "Iniciar sesión"}
+              {loading ? "Iniciando sesión..." : "Iniciar sesión"}
             </button>
           </form>
 

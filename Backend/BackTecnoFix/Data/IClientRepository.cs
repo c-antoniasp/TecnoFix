@@ -9,7 +9,7 @@ namespace TecnoFix.Data;
 public interface IClientRepository
 {
     /// <summary>
-    /// Verifica si ya existe un cliente con el correo electrónico especificado.
+    /// Verifica si ya existe un usuario con el correo electrónico especificado.
     /// </summary>
     /// <param name="email">Correo electrónico a consultar.</param>
     /// <returns>True si ya se encuentra registrado, de lo contrario False.</returns>
@@ -23,22 +23,22 @@ public interface IClientRepository
     Task<bool> ExistsByRutAsync(string rut);
 
     /// <summary>
-    /// Agrega un nuevo cliente al almacenamiento de datos.
+    /// Agrega un nuevo cliente (usuario con rol CLIENT) al almacenamiento de datos.
     /// </summary>
-    /// <param name="client">Instancia del cliente a almacenar.</param>
-    /// <returns>Instancia del cliente guardado con su identificador generado.</returns>
-    Task<Client> AddAsync(Client client);
+    /// <param name="client">Usuario cliente a almacenar.</param>
+    /// <returns>El cliente guardado con su identificador.</returns>
+    Task<User> AddAsync(User client);
 
     /// <summary>
     /// Obtiene un cliente según su identificador único.
     /// </summary>
-    /// <param name="id">Identificador del cliente.</param>
+    /// <param name="id">Identificador (UUID) del cliente.</param>
     /// <returns>El cliente correspondiente o null si no existe.</returns>
-    Task<Client?> GetByIdAsync(int id);
+    Task<User?> GetByIdAsync(Guid id);
 
     /// <summary>
     /// Obtiene la lista completa de clientes registrados.
     /// </summary>
     /// <returns>Colección de clientes.</returns>
-    Task<IEnumerable<Client>> GetAllAsync();
+    Task<IEnumerable<User>> GetAllAsync();
 }

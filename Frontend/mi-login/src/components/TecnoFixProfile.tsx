@@ -46,7 +46,6 @@ export default function TecnoFixProfile({ user, role, onNavigate, onLogout, onPa
           <div className="tf-avatar tf-profileAvatar" aria-hidden="true">{initial}</div>
           <div>
             <h2>{user.name}</h2>
-            <span className="tf-profileRole">{role}</span>
           </div>
         </div>
 
@@ -58,14 +57,6 @@ export default function TecnoFixProfile({ user, role, onNavigate, onLogout, onPa
           <div>
             <dt>Correo electrónico</dt>
             <dd>{user.email}</dd>
-          </div>
-          <div>
-            <dt>Rol</dt>
-            <dd>{role}</dd>
-          </div>
-          <div>
-            <dt>ID de usuario</dt>
-            <dd>{user.userId}</dd>
           </div>
         </dl>
 

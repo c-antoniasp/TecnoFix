@@ -4,6 +4,8 @@ import { Check, Eye, EyeOff } from "lucide-react";
 import { changePassword } from "../Api/auth";
 import type { ChangePasswordRequest } from "../Api/auth";
 import { ApiError } from "../Api/client";
+import ConfirmDialog from "./ConfirmDialog";
+import { requiredFieldMessage } from "../utils/validation";
 
 interface TecnoFixChangePasswordProps {
   onCancel: () => void;
@@ -18,24 +20,18 @@ type FieldErrors = Partial<Record<keyof ChangePasswordRequest, string>>;
 const passwordFields = [
   { name: "currentPassword", label: "Contraseña actual", visibilityLabel: "contraseña actual", autoComplete: "current-password" },
   { name: "newPassword", label: "Nueva contraseña", visibilityLabel: "nueva contraseña", autoComplete: "new-password" },
-  { name: "confirmPassword", label: "Confirmar nueva contraseña", visibilityLabel: "confirmación de nueva contraseña", autoComplete: "new-password" },
+  { name: "confirmPassword", label: "Confirmación de la nueva contraseña", visibilityLabel: "confirmación de nueva contraseña", autoComplete: "new-password" },
 ] as const;
 
+// El frontend solo comprueba que los campos no estén vacíos. Las demás reglas
+// (contraseña actual correcta, formato, confirmación y distinta de la actual) las
+// valida el backend en ese orden, empezando por la contraseña guardada en la base
+// de datos, para que el mensaje dependa siempre de lo registrado y no de lo digitado.
 function validatePasswords(request: ChangePasswordRequest): FieldErrors {
   const errors: FieldErrors = {};
-  if (!request.currentPassword.trim()) errors.currentPassword = "Debe completar el campo contraseña actual.";
-  if (!request.newPassword.trim()) {
-    errors.newPassword = "Debe completar el campo nueva contraseña.";
-  } else if (request.newPassword.length < 8 || !/\p{L}/u.test(request.newPassword) || !/\p{Nd}/u.test(request.newPassword)) {
-    errors.newPassword = "La contraseña debe tener al menos 8 caracteres, una letra y un número.";
-  } else if (request.newPassword === request.currentPassword) {
-    errors.newPassword = "La nueva contraseña debe ser distinta de la actual.";
-  }
-  if (!request.confirmPassword.trim()) {
-    errors.confirmPassword = "Debe completar el campo confirmación de la nueva contraseña.";
-  } else if (request.newPassword !== request.confirmPassword) {
-    errors.confirmPassword = "Las contraseñas ingresadas no coinciden.";
-  }
+  if (!request.currentPassword.trim()) errors.currentPassword = requiredFieldMessage("Contraseña actual");
+  if (!request.newPassword.trim()) errors.newPassword = requiredFieldMessage("Nueva contraseña");
+  if (!request.confirmPassword.trim()) errors.confirmPassword = requiredFieldMessage("Confirmación de la nueva contraseña");
   return errors;
 }
 
@@ -44,6 +40,9 @@ export default function TecnoFixChangePassword({ onCancel, onPasswordChanged, on
   const [requestError, setRequestError] = useState("");
   const [visiblePasswords, setVisiblePasswords] = useState<Partial<Record<keyof ChangePasswordRequest, boolean>>>({});
   const controller = useRef<AbortController | null>(null);
+  const formRef = useRef<HTMLFormElement | null>(null);
+  // Datos ya validados que esperan la confirmación «¿Está seguro?».
+  const [pendingRequest, setPendingRequest] = useState<ChangePasswordRequest | null>(null);
 
   useEffect(() => () => controller.current?.abort(), []);
 
@@ -66,6 +65,20 @@ export default function TecnoFixChangePassword({ onCancel, onPasswordChanged, on
       (form.elements.namedItem(firstError.name) as HTMLInputElement).focus();
       return;
     }
+
+    // Antes de guardar se pide confirmación (REQ NF01).
+    setPendingRequest(request);
+  };
+
+  const handleConfirm = () => {
+    const request = pendingRequest;
+    setPendingRequest(null);
+    if (request) void saveNewPassword(request);
+  };
+
+  const saveNewPassword = async (request: ChangePasswordRequest) => {
+    const form = formRef.current;
+    if (controller.current || !form) return;
 
     const abortController = new AbortController();
     controller.current = abortController;
@@ -93,7 +106,15 @@ export default function TecnoFixChangePassword({ onCancel, onPasswordChanged, on
   };
 
   return (
-    <form className="tf-passwordForm" onSubmit={handleSubmit} noValidate aria-labelledby="tf-password-title" aria-busy={isSubmitting}>
+    <>
+    <ConfirmDialog
+      open={pendingRequest !== null}
+      message="¿Está seguro de cambiar su contraseña? Deberá iniciar sesión nuevamente."
+      confirmLabel="Sí, cambiar contraseña"
+      onConfirm={handleConfirm}
+      onCancel={() => setPendingRequest(null)}
+    />
+    <form ref={formRef} className="tf-passwordForm" onSubmit={handleSubmit} noValidate aria-labelledby="tf-password-title" aria-busy={isSubmitting}>
       <h2 id="tf-password-title">Cambiar contraseña</h2>
       {requestError && <p className="tf-passwordRequestError" role="alert">{requestError}</p>}
       <fieldset disabled={isSubmitting}>
@@ -142,5 +163,6 @@ export default function TecnoFixChangePassword({ onCancel, onPasswordChanged, on
         </div>
       </fieldset>
     </form>
+    </>
   );
 }

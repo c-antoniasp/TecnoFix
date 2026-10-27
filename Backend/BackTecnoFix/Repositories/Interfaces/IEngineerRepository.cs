@@ -4,6 +4,6 @@ namespace TecnoFix.Repositories
 {
     public interface IEngineerRepository
     {
-        Task<Technician> add(Technician technician);
+        Task<User> add(User technician);
     }
 }
