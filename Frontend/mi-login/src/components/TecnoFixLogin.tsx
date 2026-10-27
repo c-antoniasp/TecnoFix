@@ -206,7 +206,7 @@ const TecnoFixLogin: FC<TecnoFixLoginProps> = ({
                     </p>
                     )}
             <button type="submit" style={styles.btnPrimary} disabled={loading}>
-              {loading ? "Ingresando..." : "Iniciar sesión"}
+              {loading ? "Iniciando sesión..." : "Iniciar sesión"}
             </button>
           </form>
 

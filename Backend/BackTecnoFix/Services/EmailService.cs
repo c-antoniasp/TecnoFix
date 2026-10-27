@@ -13,6 +13,10 @@ public class EmailService : IEmailService
     private const string BrevoEndpoint = "https://api.brevo.com/v3/smtp/email";
     private const string DefaultSenderName = "TecnoFix";
 
+    // Tiempo máximo de espera de Brevo. Sin límite, una caída de Brevo dejaba el registro
+    // esperando (HttpClient espera 100 s por defecto) y el usuario veía que "no responde".
+    private static readonly TimeSpan SendTimeout = TimeSpan.FromSeconds(15);
+
     // Omite "htmlContent" cuando no se envía cuerpo HTML.
     private static readonly JsonSerializerOptions SkipNullsOptions = new()
     {
@@ -33,7 +37,7 @@ public class EmailService : IEmailService
     /// <summary>
     /// Envía un correo electrónico mediante Brevo, o lo registra en el log si Brevo no está configurado.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Si Brevo rechaza el envío.</exception>
+    /// <exception cref="InvalidOperationException">Si Brevo rechaza el envío o no responde a tiempo.</exception>
     public async Task SendEmailAsync(string to, string subject, string body, string? htmlBody = null)
     {
         var apiKey = _configuration["Brevo:ApiKey"];
@@ -70,13 +74,23 @@ public class EmailService : IEmailService
         };
         request.Headers.Add("api-key", apiKey);
 
-        using var response = await _httpClient.SendAsync(request);
-
-        if (!response.IsSuccessStatusCode)
+        using var timeout = new CancellationTokenSource(SendTimeout);
+        try
         {
-            var error = await response.Content.ReadAsStringAsync();
-            _logger.LogError("Brevo rechazó el correo a {To}: HTTP {Status} {Error}", to, (int)response.StatusCode, error);
-            throw new InvalidOperationException("No se pudo enviar el correo electrónico.");
+            using var response = await _httpClient.SendAsync(request, timeout.Token);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                _logger.LogError("Brevo rechazó el correo a {To}: HTTP {Status} {Error}", to, (int)response.StatusCode, error);
+                throw new InvalidOperationException("No se pudo enviar el correo electrónico.");
+            }
+        }
+        catch (Exception exception) when (exception is HttpRequestException or OperationCanceledException)
+        {
+            // Sin conexión con Brevo o sin respuesta a tiempo: los servicios lo tratan como un envío fallido.
+            _logger.LogError(exception, "No se pudo contactar a Brevo para enviar el correo a {To}", to);
+            throw new InvalidOperationException("No se pudo enviar el correo electrónico.", exception);
         }
 
         _logger.LogInformation("Correo enviado a {To} mediante Brevo.", to);

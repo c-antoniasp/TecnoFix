@@ -96,7 +96,7 @@ export const TecnoFixRegister: FC<TecnoFixRegisterProps> = ({
       <ConfirmDialog
         open={showConfirm}
         message="¿Está seguro de registrarse con los datos ingresados?"
-        confirmLabel="Sí, registrarme"
+        confirmLabel="Sí, registrar"
         onConfirm={handleConfirm}
         onCancel={() => setShowConfirm(false)}
       />
@@ -206,7 +206,7 @@ export const TecnoFixRegister: FC<TecnoFixRegisterProps> = ({
             </div>
 
             <button type="submit" disabled={loading} style={styles.btnPrimary}>
-              {loading ? "Registrando..." : "Registrarme"}
+              {loading ? "Registrando cliente..." : "Registrar cliente"}
             </button>
           </form>
 

@@ -60,6 +60,21 @@ public class ChangePasswordServiceTests
     }
 
     [Fact]
+    public async Task incorrectCurrentPasswordIsReportedBeforeAnyOtherRule()
+    {
+        // La nueva contraseña es igual a la digitada como actual y la confirmación no coincide:
+        // aun así debe responder que la actual es incorrecta, porque se compara con la guardada.
+        var request = new ChangePasswordRequestDTO
+        {
+            currentPassword = "Incorrecta123",
+            newPassword = "Incorrecta123",
+            confirmPassword = "Distinta999"
+        };
+
+        await assertRejected(new TestUserRepository(), request, 400, "La contraseña actual es incorrecta");
+    }
+
+    [Fact]
     public async Task incorrectCurrentPasswordIsRejectedWithoutSaving()
     {
         var request = ChangePasswordTestData.validRequest();

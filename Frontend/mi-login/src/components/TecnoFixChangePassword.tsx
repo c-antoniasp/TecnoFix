@@ -23,22 +23,15 @@ const passwordFields = [
   { name: "confirmPassword", label: "Confirmación de la nueva contraseña", visibilityLabel: "confirmación de nueva contraseña", autoComplete: "new-password" },
 ] as const;
 
+// El frontend solo comprueba que los campos no estén vacíos. Las demás reglas
+// (contraseña actual correcta, formato, confirmación y distinta de la actual) las
+// valida el backend en ese orden, empezando por la contraseña guardada en la base
+// de datos, para que el mensaje dependa siempre de lo registrado y no de lo digitado.
 function validatePasswords(request: ChangePasswordRequest): FieldErrors {
   const errors: FieldErrors = {};
-  // Textos exactos de la ERS (USU-004), iguales a los que devuelve el backend.
   if (!request.currentPassword.trim()) errors.currentPassword = requiredFieldMessage("Contraseña actual");
-  if (!request.newPassword.trim()) {
-    errors.newPassword = requiredFieldMessage("Nueva contraseña");
-  } else if (request.newPassword.length < 8 || !/\p{L}/u.test(request.newPassword) || !/\p{Nd}/u.test(request.newPassword)) {
-    errors.newPassword = "La contraseña debe tener al menos 8 caracteres, una letra y un número";
-  } else if (request.newPassword === request.currentPassword) {
-    errors.newPassword = "La nueva contraseña debe ser distinta de la actual";
-  }
-  if (!request.confirmPassword.trim()) {
-    errors.confirmPassword = requiredFieldMessage("Confirmación de la nueva contraseña");
-  } else if (request.newPassword !== request.confirmPassword) {
-    errors.confirmPassword = "Las contraseñas ingresadas no coinciden";
-  }
+  if (!request.newPassword.trim()) errors.newPassword = requiredFieldMessage("Nueva contraseña");
+  if (!request.confirmPassword.trim()) errors.confirmPassword = requiredFieldMessage("Confirmación de la nueva contraseña");
   return errors;
 }
 

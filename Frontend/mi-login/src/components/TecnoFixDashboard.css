@@ -313,3 +313,7 @@ body { margin: 0; background: #E2E8F0; }
     .tf-search { max-width: none; }
     .tf-panelHeader { align-items: flex-start; flex-direction: column; }
   }
+
+.tf-comingSoon { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center; }
+.tf-comingSoon h1 { margin: 0 0 8px; font-size: 28px; color: #0F172A; }
+.tf-comingSoon p { margin: 0; font-size: 15px; color: #64748B; }

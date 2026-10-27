@@ -73,7 +73,7 @@ const TecnoFixRegisterTechnician: FC<RegisterTechnicianProps> = ({ onSubmit, err
 
       <div style={styles.card}>
         <div style={styles.formSide}>
-          <h1 style={styles.title}>Registrar Técnico</h1>
+          <h1 style={styles.title}>Registrar técnico</h1>
           <p style={styles.subtitle}>
             Ingresa los datos para habilitar a un nuevo técnico en el sistema.
           </p>
@@ -154,7 +154,7 @@ const TecnoFixRegisterTechnician: FC<RegisterTechnicianProps> = ({ onSubmit, err
                   cursor: isSubmitting ? "not-allowed" : "pointer"
                 }}
               >
-                {isSubmitting ? "Registrando..." : "Registrar"}
+                {isSubmitting ? "Registrando técnico..." : "Registrar técnico"}
               </button>
             </div>
           </form>
