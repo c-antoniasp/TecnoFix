@@ -34,7 +34,8 @@ public class AuthIntegrationTests
 
         Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
         var loginBody = await loginResponse.Content.ReadFromJsonAsync<JsonElement>();
-        Assert.Equal(ChangePasswordTestData.firstUserIdText, loginBody.GetProperty("userId").GetString());
+        // El frontend no recibe el ID del usuario.
+        Assert.False(loginBody.TryGetProperty("userId", out _));
         Assert.Equal("Test user", loginBody.GetProperty("name").GetString());
         Assert.Equal("user@example.test", loginBody.GetProperty("email").GetString());
         Assert.Equal(role.ToString(), loginBody.GetProperty("role").GetString());
@@ -66,7 +67,7 @@ public class AuthIntegrationTests
             confirmPassword = "SinNumeros"
         });
         await assertError(authenticatedResponse, HttpStatusCode.BadRequest,
-            "La contraseña debe tener al menos 8 caracteres, una letra y un número.");
+            "La contraseña debe tener al menos 8 caracteres, una letra y un número");
         Assert.Equal(1, factory.repository.saveCount);
     }
 

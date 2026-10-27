@@ -31,18 +31,24 @@ namespace TecnoFix.Services
             if (!Regex.IsMatch(request.name, @"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$"))
                 throw new BusinessException("El nombre solo puede contener letras y espacios");
 
-            var existingUser = await _userRepository.findByEmail(request.email);
+            // Mismo formato de correo que valida el registro de clientes y el login.
+            var email = request.email.Trim();
+            if (!Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+                throw new BusinessException("El correo electrónico no tiene un formato válido");
+
+            var existingUser = await _userRepository.findByEmail(email);
             if (existingUser != null)
                 throw new BusinessException("El correo electrónico ingresado ya se encuentra registrado");
 
-            string tempPassword = generateRandomPassword(8);
+            // Mismo generador seguro (RandomNumberGenerator) que usa el registro de clientes.
+            string tempPassword = ClientService.GenerarPasswordTemporal(8);
             string hashedPassword = BCrypt.Net.BCrypt.HashPassword(tempPassword);
 
             // Un técnico es un usuario con rol TECHNICIAN; su especialidad se guarda en "users".
             var newTechnician = new User
             {
                 name = request.name,
-                email = request.email,
+                email = email,
                 password = hashedPassword,
                 role = UserRole.TECHNICIAN,
                 specialty = request.specialty,
@@ -57,7 +63,7 @@ namespace TecnoFix.Services
             try
             {
                 await _emailService.SendEmailAsync(
-                    request.email,
+                    email,
                     EmailTemplates.TemporaryPasswordSubject,
                     EmailTemplates.TemporaryPasswordText(request.name, tempPassword, roleDescription),
                     EmailTemplates.TemporaryPasswordHtml(request.name, tempPassword, roleDescription));
@@ -68,12 +74,5 @@ namespace TecnoFix.Services
             }
         }
 
-        private string generateRandomPassword(int length)
-        {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            var random = new Random();
-            return new string(Enumerable.Repeat(chars, length)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
-        }
     }
 }

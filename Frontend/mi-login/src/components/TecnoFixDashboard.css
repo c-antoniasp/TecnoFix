@@ -110,7 +110,6 @@ body { margin: 0; background: #E2E8F0; }
   .tf-profileIdentity > div:last-child { min-width: 0; }
   .tf-profileAvatar { width: 64px; height: 64px; flex: none; font-size: 24px; }
   .tf-profileIdentity h2 { margin: 0 0 8px; font-size: 20px; line-height: 1.4; letter-spacing: 0; overflow-wrap: anywhere; }
-  .tf-profileRole { display: inline-block; color: var(--tf-green-dark); font-size: 13px; font-weight: 600; }
   .tf-profileDetails { max-width: 760px; margin: 0; border-top: 1px solid #CBD5E1; }
   .tf-profileDetails > div { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--tf-line); }
   .tf-profileDetails dt { color: var(--tf-muted); font-size: 13px; line-height: 1.6; }

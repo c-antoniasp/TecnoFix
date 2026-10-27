@@ -22,9 +22,9 @@ public class ChangePasswordServiceTests
         var request = ChangePasswordTestData.validRequest();
         var fieldName = field switch
         {
-            "current" => "contraseña actual",
-            "new" => "nueva contraseña",
-            _ => "confirmación de la nueva contraseña"
+            "current" => "Contraseña actual",
+            "new" => "Nueva contraseña",
+            _ => "Confirmación de la nueva contraseña"
         };
 
         switch (field)
@@ -34,7 +34,7 @@ public class ChangePasswordServiceTests
             default: request.confirmPassword = value; break;
         }
 
-        await assertRejected(repository, request, 400, $"Debe completar el campo {fieldName}.");
+        await assertRejected(repository, request, 400, $"Debe completar el campo {fieldName}");
         Assert.Null(repository.requestedUserId);
     }
 
@@ -42,7 +42,7 @@ public class ChangePasswordServiceTests
     public async Task missingRequestIsRejectedWithoutSaving()
     {
         await assertRejected(new TestUserRepository(), null, 400,
-            "Debe completar el campo contraseña actual.");
+            "Debe completar el campo Contraseña actual");
     }
 
     [Theory]
@@ -56,7 +56,7 @@ public class ChangePasswordServiceTests
         request.confirmPassword = password;
 
         await assertRejected(new TestUserRepository(), request, 400,
-            "La contraseña debe tener al menos 8 caracteres, una letra y un número.");
+            "La contraseña debe tener al menos 8 caracteres, una letra y un número");
     }
 
     [Fact]
@@ -88,7 +88,7 @@ public class ChangePasswordServiceTests
         request.confirmPassword = "Otra1234";
 
         await assertRejected(new TestUserRepository(), request, 400,
-            "Las contraseñas ingresadas no coinciden.");
+            "Las contraseñas ingresadas no coinciden");
     }
 
     [Fact]

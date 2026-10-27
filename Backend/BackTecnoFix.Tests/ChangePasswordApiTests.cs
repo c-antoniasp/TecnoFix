@@ -146,7 +146,7 @@ public class ChangePasswordApiTests
         var response = await client.PutAsync(endpoint, new StringContent(json, Encoding.UTF8, "application/json"));
 
         await assertError(response, HttpStatusCode.BadRequest,
-            "Debe completar el campo contraseña actual.");
+            "Debe completar el campo Contraseña actual");
         Assert.Null(factory.repository.requestedUserId);
     }
 

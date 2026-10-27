@@ -1,5 +1,12 @@
 import { useState, useEffect } from "react";
 import type { FC, FormEvent } from "react";
+import ConfirmDialog from "./ConfirmDialog";
+import {
+  VALIDATION_MESSAGES,
+  isValidEmail,
+  isValidPersonName,
+  requiredFieldMessage,
+} from "../utils/validation";
 
 interface RegisterTechnicianProps {
   onSubmit: (name: string, email: string, specialty: string) => void;
@@ -14,6 +21,8 @@ const TecnoFixRegisterTechnician: FC<RegisterTechnicianProps> = ({ onSubmit, err
   const [specialty, setSpecialty] = useState<string>("");
   
   const [showConfirm, setShowConfirm] = useState<boolean>(false);
+  // Error de validación local (mismos textos de la ERS que devuelve el backend).
+  const [validationError, setValidationError] = useState<string>("");
   
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
@@ -24,46 +33,43 @@ const TecnoFixRegisterTechnician: FC<RegisterTechnicianProps> = ({ onSubmit, err
     }
   }, [error, successMessage]);
 
+  // Valida con las mismas reglas del backend (USU-003) antes de pedir confirmación.
+  const validate = (): string => {
+    if (!name.trim()) return requiredFieldMessage("Nombre y apellidos");
+    if (!email.trim()) return requiredFieldMessage("Correo electrónico");
+    if (!specialty.trim()) return requiredFieldMessage("Especialidad");
+    if (!isValidPersonName(name.trim())) return VALIDATION_MESSAGES.invalidName;
+    if (!isValidEmail(email.trim())) return VALIDATION_MESSAGES.invalidEmail;
+    return "";
+  };
+
   const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
-    setShowConfirm(true);
+    const message = validate();
+    setValidationError(message);
+    if (!message) setShowConfirm(true);
   };
 
   const handleConfirm = (): void => {
-    setShowConfirm(false); // Cierra el modal
+    setShowConfirm(false); // Cierra el diálogo
     setIsSubmitting(true); // Cambia el texto del botón principal a "Registrando..."
-    onSubmit(name, email, specialty); 
+    onSubmit(name.trim(), email.trim(), specialty.trim());
   };
 
   return (
     <div style={styles.page}>
       
-      {showConfirm && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modalContent}>
-            <h3 style={styles.modalTitle}>Confirmar registro</h3>
-            <p style={styles.modalText}>
-              ¿Estás seguro de que deseas registrar a <strong>{name}</strong> como técnico?
-            </p>
-            <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
-              <button 
-                type="button" 
-                onClick={() => setShowConfirm(false)} 
-                style={styles.btnSecondary}
-              >
-                Cancelar
-              </button>
-              <button 
-                type="button" 
-                onClick={handleConfirm} 
-                style={styles.btnPrimary}
-              >
-                Sí, registrar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={showConfirm}
+        message={
+          <>
+            ¿Está seguro de registrar a <strong>{name.trim()}</strong> como técnico?
+          </>
+        }
+        confirmLabel="Sí, registrar"
+        onConfirm={handleConfirm}
+        onCancel={() => setShowConfirm(false)}
+      />
 
       <div style={styles.card}>
         <div style={styles.formSide}>
@@ -72,10 +78,10 @@ const TecnoFixRegisterTechnician: FC<RegisterTechnicianProps> = ({ onSubmit, err
             Ingresa los datos para habilitar a un nuevo técnico en el sistema.
           </p>
 
-          {error && <div style={styles.errorMessage}>{error}</div>}
+          {(validationError || error) && <div style={styles.errorMessage}>{validationError || error}</div>}
           {successMessage && <div style={styles.successMessage}>{successMessage}</div>}
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} noValidate>
             <div style={styles.field}>
               <label htmlFor="name" style={styles.label}>Nombre y apellidos</label>
               <div style={styles.inputWrap}>
@@ -257,40 +263,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: 15,
     fontWeight: 700,
     cursor: "pointer",
-  },
-  modalOverlay: {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    backgroundColor: "rgba(15, 23, 42, 0.7)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 1000,
-    padding: "20px",
-    boxSizing: "border-box",
-  },
-  modalContent: {
-    background: "#FFFFFF",
-    padding: "32px",
-    borderRadius: "16px",
-    maxWidth: "400px",
-    width: "100%",
-    boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 700,
-    color: "#0F172A",
-    margin: "0 0 12px 0",
-  },
-  modalText: {
-    fontSize: 15,
-    color: "#475569",
-    lineHeight: 1.5,
-    margin: 0,
   }
 };
 

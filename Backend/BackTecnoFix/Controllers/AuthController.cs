@@ -30,7 +30,6 @@ public class AuthController : ControllerBase
 
             return Ok(new
             {
-                userId = response.userId,
                 name = response.name,
                 email = response.email,
                 role = response.role

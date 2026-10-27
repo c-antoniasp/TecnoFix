@@ -142,7 +142,6 @@ function App() {
         <div hidden={view === "profile"}>
           <TecnoFixClientDashboard
             user={{
-              id: user.userId,
               nombre: user.name,
               email: user.email,
               rut: "",
