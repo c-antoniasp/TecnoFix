@@ -75,7 +75,7 @@ public class ChangePasswordServiceTests
     public async Task plaintextOrInvalidStoredHashIsRejected(string storedPassword)
     {
         var repository = new TestUserRepository();
-        repository.passwordHashes[1] = storedPassword;
+        repository.passwordHashes[ChangePasswordTestData.firstUserId] = storedPassword;
 
         await assertRejected(repository, ChangePasswordTestData.validRequest(), 400,
             "La contraseña actual es incorrecta");
@@ -106,27 +106,28 @@ public class ChangePasswordServiceTests
     public async Task validChangeSavesHashAndRejectsOldPassword()
     {
         var repository = new TestUserRepository();
-        var otherUserHash = repository.passwordHashes[2];
+        var otherUserHash = repository.passwordHashes[ChangePasswordTestData.secondUserId];
         var service = new AuthService(repository, new ConfigurationBuilder().Build());
 
-        await service.changePassword(1, ChangePasswordTestData.validRequest());
+        await service.changePassword(ChangePasswordTestData.firstUserId, ChangePasswordTestData.validRequest());
 
         Assert.Equal(1, repository.saveCount);
-        Assert.NotEqual(ChangePasswordTestData.newPassword, repository.passwordHashes[1]);
-        Assert.True(BCrypt.Net.BCrypt.Verify(ChangePasswordTestData.newPassword, repository.passwordHashes[1]));
-        Assert.False(BCrypt.Net.BCrypt.Verify(ChangePasswordTestData.currentPassword, repository.passwordHashes[1]));
-        Assert.Equal(otherUserHash, repository.passwordHashes[2]);
+        var firstHash = repository.passwordHashes[ChangePasswordTestData.firstUserId];
+        Assert.NotEqual(ChangePasswordTestData.newPassword, firstHash);
+        Assert.True(BCrypt.Net.BCrypt.Verify(ChangePasswordTestData.newPassword, firstHash));
+        Assert.False(BCrypt.Net.BCrypt.Verify(ChangePasswordTestData.currentPassword, firstHash));
+        Assert.Equal(otherUserHash, repository.passwordHashes[ChangePasswordTestData.secondUserId]);
 
         await assertRejected(repository, ChangePasswordTestData.validRequest(), 400,
             "La contraseña actual es incorrecta", expectedSaveCount: 1);
     }
 
     [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    [InlineData(99)]
-    public async Task invalidOrMissingSessionUserIsRejected(int userId)
+    [InlineData("00000000-0000-0000-0000-000000000000")]
+    [InlineData("00000000-0000-0000-0000-000000000099")]
+    public async Task invalidOrMissingSessionUserIsRejected(string userIdText)
     {
+        var userId = Guid.Parse(userIdText);
         var repository = new TestUserRepository();
         var exception = await Assert.ThrowsAsync<AuthException>(
             () => new AuthService(repository, new ConfigurationBuilder().Build())
@@ -149,13 +150,14 @@ public class ChangePasswordServiceTests
     private static async Task assertRejected(TestUserRepository repository,
         ChangePasswordRequestDTO? request, int statusCode, string message, int expectedSaveCount = 0)
     {
-        var originalPassword = repository.passwordHashes[1];
+        var originalPassword = repository.passwordHashes[ChangePasswordTestData.firstUserId];
         var exception = await Assert.ThrowsAsync<AuthException>(
-            () => new AuthService(repository, new ConfigurationBuilder().Build()).changePassword(1, request));
+            () => new AuthService(repository, new ConfigurationBuilder().Build())
+                .changePassword(ChangePasswordTestData.firstUserId, request));
 
         Assert.Equal(statusCode, exception.statusCode);
         Assert.Equal(message, exception.Message);
         Assert.Equal(expectedSaveCount, repository.saveCount);
-        Assert.Equal(originalPassword, repository.passwordHashes[1]);
+        Assert.Equal(originalPassword, repository.passwordHashes[ChangePasswordTestData.firstUserId]);
     }
 }

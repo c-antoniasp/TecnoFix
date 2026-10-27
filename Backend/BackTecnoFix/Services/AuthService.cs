@@ -79,9 +79,9 @@ namespace TecnoFix.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        public async Task changePassword(int userId, ChangePasswordRequestDTO? request)
+        public async Task changePassword(Guid userId, ChangePasswordRequestDTO? request)
         {
-            if (userId <= 0)
+            if (userId == Guid.Empty)
             {
                 throw new AuthException(401, "Debe iniciar sesión nuevamente.");
             }

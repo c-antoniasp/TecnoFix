@@ -74,11 +74,11 @@ public class ChangePasswordApiTests
         {
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         }
-        var otherUserHash = factory.repository.passwordHashes[2];
+        var otherUserHash = factory.repository.passwordHashes[ChangePasswordTestData.secondUserId];
 
-        var response = await client.PutAsJsonAsync(endpoint + "?userId=2", new
+        var response = await client.PutAsJsonAsync(endpoint + "?userId=" + ChangePasswordTestData.secondUserIdText, new
         {
-            userId = 2,
+            userId = ChangePasswordTestData.secondUserIdText,
             currentPassword = ChangePasswordTestData.currentPassword,
             newPassword = ChangePasswordTestData.newPassword,
             confirmPassword = ChangePasswordTestData.newPassword
@@ -87,11 +87,11 @@ public class ChangePasswordApiTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
         Assert.True(body.GetProperty("requiresLogin").GetBoolean());
-        Assert.Equal(1, factory.repository.requestedUserId);
+        Assert.Equal(ChangePasswordTestData.firstUserId, factory.repository.requestedUserId);
         Assert.Equal(1, factory.repository.saveCount);
         Assert.True(BCrypt.Net.BCrypt.Verify(ChangePasswordTestData.newPassword,
-            factory.repository.passwordHashes[1]));
-        Assert.Equal(otherUserHash, factory.repository.passwordHashes[2]);
+            factory.repository.passwordHashes[ChangePasswordTestData.firstUserId]));
+        Assert.Equal(otherUserHash, factory.repository.passwordHashes[ChangePasswordTestData.secondUserId]);
         var cookie = Assert.Single(response.Headers.GetValues("Set-Cookie"));
         Assert.Contains("access_token=;", cookie);
         Assert.Contains("expires=Thu, 01 Jan 1970", cookie);
@@ -103,6 +103,8 @@ public class ChangePasswordApiTests
     [InlineData("not-an-id")]
     [InlineData("0")]
     [InlineData("-1")]
+    [InlineData("1")]
+    [InlineData("00000000-0000-0000-0000-000000000000")]
     public async Task tokenWithoutValidUserIdCannotChangePassword(string? userId)
     {
         await using var factory = new ChangePasswordFactory();
@@ -180,7 +182,7 @@ public class ChangePasswordApiTests
         Assert.Equal(1, factory.repository.saveCount);
     }
 
-    private static string createToken(string? userId = "1", string role = "CLIENT", string? invalidPart = null)
+    private static string createToken(string? userId = ChangePasswordTestData.firstUserIdText, string role = "CLIENT", string? invalidPart = null)
     {
         var claims = new List<Claim> { new(ClaimTypes.Role, role) };
         if (userId is not null)

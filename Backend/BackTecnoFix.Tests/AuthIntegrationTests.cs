@@ -34,7 +34,7 @@ public class AuthIntegrationTests
 
         Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
         var loginBody = await loginResponse.Content.ReadFromJsonAsync<JsonElement>();
-        Assert.Equal(1, loginBody.GetProperty("userId").GetInt32());
+        Assert.Equal(ChangePasswordTestData.firstUserIdText, loginBody.GetProperty("userId").GetString());
         Assert.Equal("Test user", loginBody.GetProperty("name").GetString());
         Assert.Equal("user@example.test", loginBody.GetProperty("email").GetString());
         Assert.Equal(role.ToString(), loginBody.GetProperty("role").GetString());
@@ -75,7 +75,7 @@ public class AuthIntegrationTests
     {
         await using var factory = new AuthFactory();
         using var client = factory.createClient();
-        var otherPasswordHash = factory.repository.passwordHashes[2];
+        var otherPasswordHash = factory.repository.passwordHashes[ChangePasswordTestData.secondUserId];
         var loginResponse = await client.PostAsJsonAsync("/api/auth/login", new LoginRequestDTO
         {
             email = "user@example.test",
@@ -83,19 +83,20 @@ public class AuthIntegrationTests
         });
         Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
 
-        var response = await client.PutAsJsonAsync(passwordEndpoint + "?userId=2", new
+        var response = await client.PutAsJsonAsync(passwordEndpoint + "?userId=" + ChangePasswordTestData.secondUserIdText, new
         {
-            userId = 2,
+            userId = ChangePasswordTestData.secondUserIdText,
             currentPassword = ChangePasswordTestData.currentPassword,
             newPassword = ChangePasswordTestData.newPassword,
             confirmPassword = ChangePasswordTestData.newPassword
         });
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(1, factory.repository.requestedUserId);
+        Assert.Equal(ChangePasswordTestData.firstUserId, factory.repository.requestedUserId);
         Assert.Equal(1, factory.repository.saveCount);
-        Assert.True(BCrypt.Net.BCrypt.Verify(ChangePasswordTestData.newPassword, factory.repository.passwordHashes[1]));
-        Assert.Equal(otherPasswordHash, factory.repository.passwordHashes[2]);
+        Assert.True(BCrypt.Net.BCrypt.Verify(ChangePasswordTestData.newPassword,
+            factory.repository.passwordHashes[ChangePasswordTestData.firstUserId]));
+        Assert.Equal(otherPasswordHash, factory.repository.passwordHashes[ChangePasswordTestData.secondUserId]);
     }
 
     [Fact]

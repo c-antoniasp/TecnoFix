@@ -38,17 +38,15 @@ namespace TecnoFix.Services
             string tempPassword = generateRandomPassword(8);
             string hashedPassword = BCrypt.Net.BCrypt.HashPassword(tempPassword);
 
-            var newTechnician = new Technician
+            // Un técnico es un usuario con rol TECHNICIAN; su especialidad se guarda en "users".
+            var newTechnician = new User
             {
-                user = new User
-                {
-                    name = request.name,
-                    email = request.email,
-                    password = hashedPassword,
-                    role = UserRole.TECHNICIAN
-                },
-                technicianType = request.specialty,
-                enabled = true
+                name = request.name,
+                email = request.email,
+                password = hashedPassword,
+                role = UserRole.TECHNICIAN,
+                specialty = request.specialty,
+                accountStatus = true
             };
 
             await _engineerRepository.add(newTechnician);

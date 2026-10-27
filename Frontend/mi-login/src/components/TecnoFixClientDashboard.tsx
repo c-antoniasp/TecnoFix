@@ -41,7 +41,7 @@ export interface OrdenReparacion {
 }
 
 export interface UserClient {
-  id: number;
+  id: string;
   nombre: string;
   email: string;
   rut: string;

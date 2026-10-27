@@ -56,8 +56,8 @@ public class AuthController : ControllerBase
         [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] ChangePasswordRequestDTO? request)
     {
         if (User.Identity?.IsAuthenticated != true
-            || !int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId)
-            || userId <= 0)
+            || !Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId)
+            || userId == Guid.Empty)
         {
             return Unauthorized(new { message = "Debe iniciar sesión nuevamente." });
         }
