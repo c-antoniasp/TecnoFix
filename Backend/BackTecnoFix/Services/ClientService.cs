@@ -133,18 +133,16 @@ public class ClientService : IClientService
         // 7. Generación de contraseña temporal de 8 caracteres de manera aleatoria
         string temporaryPassword = GenerarPasswordTemporal(8);
 
-        // 8. Creación de la entidad del cliente
-        var newClient = new Client
+        // 8. Creación del usuario con rol CLIENT (RUT y teléfono viven en la tabla "users")
+        var newClient = new User
         {
-            user = new User
-            {
-                name = cleanNombre,
-                email = cleanEmail,
-                password = BCrypt.Net.BCrypt.HashPassword(temporaryPassword),
-                role = UserRole.CLIENT
-            },
+            name = cleanNombre,
+            email = cleanEmail,
+            password = BCrypt.Net.BCrypt.HashPassword(temporaryPassword),
+            role = UserRole.CLIENT,
             rut = cleanRut,
-            phone = cleanTelefono
+            phone = cleanTelefono,
+            accountStatus = true
         };
 
         var savedClient = await _clientRepository.AddAsync(newClient);
@@ -174,7 +172,7 @@ public class ClientService : IClientService
         {
             Success = true,
             Id = savedClient.id,
-            Correo = savedClient.user.email,
+            Correo = savedClient.email,
             Message = "Cliente registrado exitosamente. Se ha enviado una contraseña temporal a su correo electrónico."
         };
     }

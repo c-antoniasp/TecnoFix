@@ -5,7 +5,7 @@ namespace TecnoFix.Data;
 
 /// <summary>
 /// Repositorio de clientes persistido en PostgreSQL (Neon) mediante Entity Framework.
-/// Cada cliente se guarda en la tabla "Client" junto a su usuario en la tabla "User".
+/// Un cliente es un usuario con rol CLIENT en la tabla "users" (con su RUT y teléfono).
 /// </summary>
 public class ClientRepository : IClientRepository
 {
@@ -32,36 +32,35 @@ public class ClientRepository : IClientRepository
     public Task<bool> ExistsByRutAsync(string rut)
     {
         var cleanRut = rut.Trim().ToUpper();
-        return _dbContext.clients.AnyAsync(c => c.rut.ToUpper() == cleanRut);
+        return _dbContext.users.AnyAsync(u => u.rut != null && u.rut.ToUpper() == cleanRut);
     }
 
     /// <summary>
-    /// Registra un nuevo cliente y su usuario; la base de datos asigna los identificadores.
+    /// Registra un nuevo cliente; la base de datos asigna la fecha y el identificador es un UUID.
     /// </summary>
-    public async Task<Client> AddAsync(Client client)
+    public async Task<User> AddAsync(User client)
     {
-        _dbContext.clients.Add(client);
+        _dbContext.users.Add(client);
         await _dbContext.SaveChangesAsync();
         return client;
     }
 
     /// <summary>
-    /// Obtiene un cliente por su ID, incluyendo los datos de su usuario.
+    /// Obtiene un cliente por su ID (solo usuarios con rol CLIENT).
     /// </summary>
-    public Task<Client?> GetByIdAsync(int id)
+    public Task<User?> GetByIdAsync(Guid id)
     {
-        return _dbContext.clients
-            .Include(c => c.user)
-            .FirstOrDefaultAsync(c => c.id == id);
+        return _dbContext.users
+            .FirstOrDefaultAsync(u => u.id == id && u.role == UserRole.CLIENT);
     }
 
     /// <summary>
-    /// Retorna todos los clientes registrados, incluyendo los datos de su usuario.
+    /// Retorna todos los clientes registrados (usuarios con rol CLIENT).
     /// </summary>
-    public async Task<IEnumerable<Client>> GetAllAsync()
+    public async Task<IEnumerable<User>> GetAllAsync()
     {
-        return await _dbContext.clients
-            .Include(c => c.user)
+        return await _dbContext.users
+            .Where(u => u.role == UserRole.CLIENT)
             .ToListAsync();
     }
 }

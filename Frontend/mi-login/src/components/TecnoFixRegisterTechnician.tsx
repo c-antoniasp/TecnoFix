@@ -1,5 +1,12 @@
-import { useState } from "react";
-import type { FormEvent } from "react";
+import { useState, useEffect } from "react";
+import type { FC, FormEvent } from "react";
+import ConfirmDialog from "./ConfirmDialog";
+import {
+  VALIDATION_MESSAGES,
+  isValidEmail,
+  isValidPersonName,
+  requiredFieldMessage,
+} from "../utils/validation";
 
 interface RegisterTechnicianProps {
   onSubmit: (name: string, email: string, specialty: string) => void;
@@ -8,30 +15,73 @@ interface RegisterTechnicianProps {
   onBack: () => void;
 }
 
-const TecnoFixRegisterTechnician = ({ onSubmit, error, successMessage, onBack }: RegisterTechnicianProps) => {
+const TecnoFixRegisterTechnician: FC<RegisterTechnicianProps> = ({ onSubmit, error, successMessage, onBack }) => {
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [specialty, setSpecialty] = useState<string>("");
+  
+  const [showConfirm, setShowConfirm] = useState<boolean>(false);
+  // Error de validación local (mismos textos de la ERS que devuelve el backend).
+  const [validationError, setValidationError] = useState<string>("");
+  
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  
+  useEffect(() => {
+    if (error || successMessage) {
+      setIsSubmitting(false);
+    }
+  }, [error, successMessage]);
+
+  // Valida con las mismas reglas del backend (USU-003) antes de pedir confirmación.
+  const validate = (): string => {
+    if (!name.trim()) return requiredFieldMessage("Nombre y apellidos");
+    if (!email.trim()) return requiredFieldMessage("Correo electrónico");
+    if (!specialty.trim()) return requiredFieldMessage("Especialidad");
+    if (!isValidPersonName(name.trim())) return VALIDATION_MESSAGES.invalidName;
+    if (!isValidEmail(email.trim())) return VALIDATION_MESSAGES.invalidEmail;
+    return "";
+  };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
-    onSubmit(name, email, specialty);
+    const message = validate();
+    setValidationError(message);
+    if (!message) setShowConfirm(true);
+  };
+
+  const handleConfirm = (): void => {
+    setShowConfirm(false); // Cierra el diálogo
+    setIsSubmitting(true); // Cambia el texto del botón principal a "Registrando..."
+    onSubmit(name.trim(), email.trim(), specialty.trim());
   };
 
   return (
     <div style={styles.page}>
+      
+      <ConfirmDialog
+        open={showConfirm}
+        message={
+          <>
+            ¿Está seguro de registrar a <strong>{name.trim()}</strong> como técnico?
+          </>
+        }
+        confirmLabel="Sí, registrar"
+        onConfirm={handleConfirm}
+        onCancel={() => setShowConfirm(false)}
+      />
+
       <div style={styles.card}>
         <div style={styles.formSide}>
-          <h1 style={styles.title}>Registrar Técnico</h1>
+          <h1 style={styles.title}>Registrar técnico</h1>
           <p style={styles.subtitle}>
             Ingresa los datos para habilitar a un nuevo técnico en el sistema.
           </p>
 
-          {/* Mensajes de feedback */}
-          {error && <div style={styles.errorMessage}>{error}</div>}
+          {(validationError || error) && <div style={styles.errorMessage}>{validationError || error}</div>}
           {successMessage && <div style={styles.successMessage}>{successMessage}</div>}
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} noValidate>
             <div style={styles.field}>
               <label htmlFor="name" style={styles.label}>Nombre y apellidos</label>
               <div style={styles.inputWrap}>
@@ -45,6 +95,7 @@ const TecnoFixRegisterTechnician = ({ onSubmit, error, successMessage, onBack }:
                   onFocus={(e) => { e.currentTarget.style.borderColor = "#34D399"; }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = "#CBD5E1"; }}
                   required
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -62,6 +113,7 @@ const TecnoFixRegisterTechnician = ({ onSubmit, error, successMessage, onBack }:
                   onFocus={(e) => { e.currentTarget.style.borderColor = "#34D399"; }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = "#CBD5E1"; }}
                   required
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -79,16 +131,30 @@ const TecnoFixRegisterTechnician = ({ onSubmit, error, successMessage, onBack }:
                   onFocus={(e) => { e.currentTarget.style.borderColor = "#34D399"; }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = "#CBD5E1"; }}
                   required
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
 
             <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
-              <button type="button" onClick={onBack} style={styles.btnSecondary}>
+              <button 
+                type="button" 
+                onClick={onBack} 
+                style={styles.btnSecondary}
+                disabled={isSubmitting}
+              >
                 Volver
               </button>
-              <button type="submit" style={styles.btnPrimary}>
-                Registrar
+              <button 
+                type="submit" 
+                disabled={isSubmitting}
+                style={{
+                  ...styles.btnPrimary,
+                  opacity: isSubmitting ? 0.7 : 1,
+                  cursor: isSubmitting ? "not-allowed" : "pointer"
+                }}
+              >
+                {isSubmitting ? "Registrando técnico..." : "Registrar técnico"}
               </button>
             </div>
           </form>
@@ -98,7 +164,6 @@ const TecnoFixRegisterTechnician = ({ onSubmit, error, successMessage, onBack }:
   );
 };
 
-// Estilos adaptados de la paleta oficial
 const styles: { [key: string]: React.CSSProperties } = {
   page: {
     fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
@@ -109,6 +174,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: "40px 20px",
     background: "linear-gradient(135deg, #0F172A 0%, #1E293B 45%, #065F46 100%)",
     boxSizing: "border-box",
+    position: "relative",
   },
   card: {
     width: "100%",
@@ -138,7 +204,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: 24,
   },
   errorMessage: {
-    color: "#F56558", // Color de error obligatorio NF01
+    color: "#F56558",
     backgroundColor: "#FEE2E2",
     padding: "12px",
     borderRadius: "8px",
@@ -185,6 +251,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: 15,
     fontWeight: 700,
     cursor: "pointer",
+    transition: "all 0.2s ease"
   },
   btnSecondary: {
     flex: 1,

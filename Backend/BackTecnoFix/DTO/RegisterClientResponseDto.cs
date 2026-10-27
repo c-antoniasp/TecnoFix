@@ -19,7 +19,7 @@ public class RegisterClientResponseDto
     /// <summary>
     /// Identificador único asignado al cliente registrado en la base de datos (nulo en caso de fallo).
     /// </summary>
-    public int? Id { get; set; }
+    public Guid? Id { get; set; }
 
     /// <summary>
     /// Correo electrónico al cual fue enviada la contraseña temporal generada aleatoriamente.

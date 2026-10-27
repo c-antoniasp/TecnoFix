@@ -6,7 +6,6 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-  userId: number;
   name: string;
   email: string;
   role: "ADMIN" | "TECHNICIAN" | "CLIENT";

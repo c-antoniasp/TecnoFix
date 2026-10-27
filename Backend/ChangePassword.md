@@ -33,13 +33,14 @@ concurrente de contrasena devuelve 409 sin sobrescribir la nueva contrasena.
 
 ## Persistencia
 
-El repositorio lee exclusivamente `password` de la tabla `"User"`, con clave
-`user_id`, segun el estandar. Actualiza solo esa columna, utilizando parametros
-de EF Core. La actualizacion compara tambien el hash anterior para evitar que
-dos solicitudes sobrescriban sus cambios.
+El repositorio lee exclusivamente `password` de la tabla `users`, con clave
+`id` (UUID). Actualiza solo esa columna con `ExecuteUpdate` de EF Core, que envia
+los valores como parametros. La actualizacion compara tambien el hash anterior
+para evitar que dos solicitudes sobrescriban sus cambios. El esquema de la base
+de datos esta en `Backend/Database/2026-10-27_new_schema.sql`.
 
 Las contrasenas registradas deben ser hashes BCrypt. No se aceptan valores
-almacenados en texto plano. No se crean tablas ni migraciones.
+almacenados en texto plano. El codigo no crea tablas ni migraciones; el esquema se aplica con el script SQL.
 
 ## Integracion con el login
 
@@ -68,8 +69,8 @@ Las pruebas validan login, logout, las reglas de contrasena, autenticacion JWT,
 los tres roles, el usuario de la sesion, CORS, el borrado de la cookie y errores
 HTTP. Tambien comprueban login, cambio y nuevo login con las cookies reales
 del servidor de pruebas. Las consultas del repositorio se comprueban en SQLite
-en memoria con una tabla de prueba
-independiente; no se conecta a Neon ni se modifica ningun usuario real.
+en memoria, con la tabla `users` creada a partir del modelo de EF;
+no se conecta a Neon ni se modifica ningun usuario real.
 
 `BackTecnoFix/TecnoFixBack.http` contiene peticiones manuales. Requieren los
 secretos configurados y un usuario de prueba registrado en Neon.

@@ -19,24 +19,27 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(u => u.email.ToLower() == email.ToLower());
     }
 
-    public async Task<bool> isTechnicianDisabled(int userId)
+    public async Task<bool> isTechnicianDisabled(Guid userId)
     {
-        return await dbContext.technicians
-            .AnyAsync(t => t.userId == userId && !t.enabled);
+        return await dbContext.users
+            .AnyAsync(u => u.id == userId && u.role == UserRole.TECHNICIAN && !u.accountStatus);
     }
 
-    public Task<string?> findPasswordById(int userId)
+    public Task<string?> findPasswordById(Guid userId)
     {
-        return dbContext.Database
-            .SqlQuery<string>($"SELECT password AS \"Value\" FROM \"User\" WHERE user_id = {userId}")
+        return dbContext.users
+            .Where(u => u.id == userId)
+            .Select(u => (string?)u.password)
             .FirstOrDefaultAsync();
     }
 
-    public async Task<bool> updatePassword(int userId, string currentPasswordHash, string newPasswordHash)
+    public async Task<bool> updatePassword(Guid userId, string currentPasswordHash, string newPasswordHash)
     {
         // Compara el hash anterior para evitar sobrescribir un cambio concurrente.
-        var updatedRows = await dbContext.Database.ExecuteSqlInterpolatedAsync(
-            $"UPDATE \"User\" SET password = {newPasswordHash} WHERE user_id = {userId} AND password = {currentPasswordHash}");
+        // ExecuteUpdate envía los valores como parámetros y modifica solo la columna password.
+        var updatedRows = await dbContext.users
+            .Where(u => u.id == userId && u.password == currentPasswordHash)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(u => u.password, newPasswordHash));
         return updatedRows == 1;
     }
 }

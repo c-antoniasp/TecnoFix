@@ -2,6 +2,14 @@ import { useState } from "react";
 import type { FC, FormEvent, CSSProperties } from "react";
 import { API_BASE_URL } from "../Api/client";
 import TecnoFixGear from "./TecnoFixGear";
+import ConfirmDialog from "./ConfirmDialog";
+import {
+  VALIDATION_MESSAGES,
+  isValidEmail,
+  isValidRutChecksum,
+  isValidRutFormat,
+  requiredFieldMessage,
+} from "../utils/validation";
 
 interface TecnoFixRegisterProps {
   onBackToLogin: () => void;
@@ -19,29 +27,35 @@ export const TecnoFixRegister: FC<TecnoFixRegisterProps> = ({
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [showConfirm, setShowConfirm] = useState(false);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  // Valida con las mismas reglas y en el mismo orden que el backend (USU-002).
+  const validate = (): string => {
+    if (!nombre.trim()) return requiredFieldMessage("Nombre y apellidos");
+    if (!correo.trim()) return requiredFieldMessage("Correo electrónico");
+    if (!rut.trim()) return requiredFieldMessage("RUT");
+    if (!telefono.trim()) return requiredFieldMessage("Teléfono de contacto");
+
+    if (!isValidEmail(correo.trim())) return VALIDATION_MESSAGES.invalidEmail;
+    const cleanRut = rut.trim().toUpperCase();
+    if (!isValidRutFormat(cleanRut)) return VALIDATION_MESSAGES.invalidRutFormat;
+    if (!isValidRutChecksum(cleanRut)) return VALIDATION_MESSAGES.invalidRut;
+    return "";
+  };
+
+  // Al enviar el formulario se valida y se pide la confirmación «¿Está seguro?».
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setSuccessMessage("");
+    const message = validate();
+    setErrorMessage(message);
+    if (!message) setShowConfirm(true);
+  };
+
+  const handleConfirm = async () => {
+    setShowConfirm(false);
     setErrorMessage("");
     setSuccessMessage("");
-
-    // Validaciones locales iniciales
-    if (!nombre.trim()) {
-      setErrorMessage("Debe completar el campo Nombre y apellidos");
-      return;
-    }
-    if (!correo.trim()) {
-      setErrorMessage("Debe completar el campo Correo electrónico");
-      return;
-    }
-    if (!rut.trim()) {
-      setErrorMessage("Debe completar el campo RUT");
-      return;
-    }
-    if (!telefono.trim()) {
-      setErrorMessage("Debe completar el campo Teléfono de contacto");
-      return;
-    }
 
     setLoading(true);
 
@@ -54,7 +68,7 @@ export const TecnoFixRegister: FC<TecnoFixRegisterProps> = ({
         body: JSON.stringify({
           nombre: nombre.trim(),
           correo: correo.trim(),
-          rut: rut.trim(),
+          rut: rut.trim().toUpperCase(),
           telefono: telefono.trim(),
         }),
       });
@@ -79,6 +93,13 @@ export const TecnoFixRegister: FC<TecnoFixRegisterProps> = ({
 
   return (
     <div style={styles.page}>
+      <ConfirmDialog
+        open={showConfirm}
+        message="¿Está seguro de registrarse con los datos ingresados?"
+        confirmLabel="Sí, registrar"
+        onConfirm={handleConfirm}
+        onCancel={() => setShowConfirm(false)}
+      />
       <div style={styles.card}>
         <div style={styles.formSide}>
           <div style={styles.brand}>
@@ -114,7 +135,7 @@ export const TecnoFixRegister: FC<TecnoFixRegisterProps> = ({
             </div>
           )}
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} noValidate>
             <div style={styles.field}>
               <label htmlFor="nombre" style={styles.label}>
                 Nombre y apellidos
@@ -185,7 +206,7 @@ export const TecnoFixRegister: FC<TecnoFixRegisterProps> = ({
             </div>
 
             <button type="submit" disabled={loading} style={styles.btnPrimary}>
-              {loading ? "Registrando..." : "Registrarme"}
+              {loading ? "Registrando cliente..." : "Registrar cliente"}
             </button>
           </form>
 

@@ -12,9 +12,10 @@ namespace TecnoFix.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task<Technician> add(Technician technician)
+        // Un técnico es un usuario con rol TECHNICIAN en la tabla "users".
+        public async Task<User> add(User technician)
         {
-            _dbContext.technicians.Add(technician);
+            _dbContext.users.Add(technician);
             await _dbContext.SaveChangesAsync();
             return technician;
         }
