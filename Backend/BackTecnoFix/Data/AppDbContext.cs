@@ -14,9 +14,15 @@ namespace TecnoFix.Data
         public DbSet<Client> clients => Set<Client>();
         public DbSet<Engineer> engineers => Set<Engineer>();
 
+        public DbSet<RepairOrder> repairOrders => Set<RepairOrder>();
+        public DbSet<Diagnosis> diagnoses => Set<Diagnosis>();
+        public DbSet<OrderLog> orderLogs => Set<OrderLog>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.HasPostgresEnum<UserRole>("user_role", nameTranslator: new NpgsqlNullNameTranslator());
+            modelBuilder.HasPostgresEnum<OrderStatus>("order_status", nameTranslator: new NpgsqlNullNameTranslator());
+
 
             modelBuilder.Entity<User>(e =>
             {
@@ -50,6 +56,51 @@ namespace TecnoFix.Data
                 e.Property(x => x.rut).HasColumnName("rut");
                 e.Property(x => x.phone).HasColumnName("phone");
             });
+            modelBuilder.Entity<RepairOrder>(e =>
+            {
+                e.ToTable("RepairOrder");
+                e.HasKey(x => x.id);
+                
+                e.Property(x => x.id).HasColumnName("order_id");
+                e.Property(x => x.clientId).HasColumnName("client_id");
+                e.Property(x => x.orderNumber).HasColumnName("order_number");
+                e.Property(x => x.equipmentType).HasColumnName("equipment_type");
+                e.Property(x => x.brandModel).HasColumnName("brand_model");
+                e.Property(x => x.serialNumber).HasColumnName("serial_number");
+                e.Property(x => x.reportedFailure).HasColumnName("reported_failure");
+                e.Property(x => x.accessories).HasColumnName("accessories");
+                e.Property(x => x.status).HasColumnName("status");
+                e.Property(x => x.receivedAt).HasColumnName("recieved_at");
+
+                e.HasOne(x => x.diagnosis).WithOne(d => d.order).HasForeignKey<Diagnosis>(d => d.orderId);
+            });
+            modelBuilder.Entity<Diagnosis>(e =>
+            {
+               e.ToTable("Diagnosis");
+               e.HasKey(x => x.id);
+
+               e.Property(x => x.id).HasColumnName("diagnosis_id");
+               e.Property(x => x.orderId).HasColumnName("order_id");
+               e.Property(x => x.technicalDiagnosis).HasColumnName("technical_diagnosis");
+
+               e.Property(x => x.laborCost).HasColumnName("labor_cost").HasPrecision(12,2);
+               e.Property(x => x.partsCost).HasColumnName("parts_cost").HasPrecision(12,2);
+               e.Property(x => x.totalCost).HasPrecision(12,2); 
+            });
+            modelBuilder.Entity<OrderLog>(e =>
+            {
+               e.ToTable("OrderLog");
+               e.HasKey(x => x.id);
+
+               e.Property(x => x.id).HasColumnName("log_id");
+               e.Property(x => x.orderId).HasColumnName("order_id");
+               e.Property(x => x.userId).HasColumnName("user_id");
+               e.Property(x => x.status).HasColumnName("status");
+               e.Property(x => x.comment).HasColumnName("comment");
+               e.Property(x => x.createdAt).HasColumnName("created_at");
+
+               e.HasOne(x => x.order).WithMany().HasForeignKey(x => x.orderId); 
+            });    
         }
     }
 }

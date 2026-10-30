@@ -23,13 +23,23 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        npgsql => npgsql.MapEnum<UserRole>("user_role", nameTranslator: new NpgsqlNullNameTranslator())
+        npgsql =>
+        {
+            npgsql.MapEnum<UserRole>(
+                "user_role",
+                nameTranslator: new NpgsqlNullNameTranslator());
+
+            npgsql.MapEnum<OrderStatus>(
+                "order_status",
+                nameTranslator: new NpgsqlNullNameTranslator());
+        }
     )
 );
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IEngineerRepository, EngineerRepository>();
 builder.Services.AddScoped<ITechnicianService, TechnicianService>();
+builder.Services.AddScoped<IRepairOrderRepository, RepairOrderRepository>();
 
 var app = builder.Build();
 
