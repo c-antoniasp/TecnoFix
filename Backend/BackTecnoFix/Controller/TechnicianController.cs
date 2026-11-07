@@ -137,9 +137,18 @@ namespace TecnoFix.Controller
 
         private int? getAuthenticatedUserId()
         {
-            string? value = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var values = User.FindAll(ClaimTypes.NameIdentifier)
+                .Select(claim => claim.Value)
+                .Concat(User.FindAll("nameid").Select(claim => claim.Value))
+                .Concat(User.FindAll("sub").Select(claim => claim.Value));
+            
+            foreach (string value in values)
+            {
+                if (int.TryParse(value, out int userId))
+                    return userId;
+            }
 
-            return int.TryParse(value, out int userId) ? userId : null;
+            return null;
         }
     }
 }

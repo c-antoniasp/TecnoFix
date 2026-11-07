@@ -3,12 +3,21 @@ import type { CSSProperties, FC, FormEvent } from "react";
 
 interface TecnoFixLoginProps {
   onSubmit?: (email: string, password: string) => void;
+  error?: string | null;
+  onSaveToken?: (token: string) => void;
+  onNavigateToRegisterTechnician?: () => void;
 }
 
-const TecnoFixLogin: FC<TecnoFixLoginProps> = ({ onSubmit }: TecnoFixLoginProps) => {
+const TecnoFixLogin: FC<TecnoFixLoginProps> = ({
+  onSubmit,
+  error,
+  onSaveToken,
+  onNavigateToRegisterTechnician,
+}: TecnoFixLoginProps) => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [devToken, setDevToken] = useState<string>("");
 
   // Quita el margen/borde blanco por defecto que pone el navegador en <body>
   useEffect(() => {
@@ -78,6 +87,12 @@ const TecnoFixLogin: FC<TecnoFixLoginProps> = ({ onSubmit }: TecnoFixLoginProps)
           <p style={styles.subtitle}>
             Ingresa con los datos que registraste para acceder a tu cuenta.
           </p>
+
+          {error && (
+            <div style={styles.errorMessage} role="alert">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit}>
             <div style={styles.field}>
@@ -168,6 +183,51 @@ const TecnoFixLogin: FC<TecnoFixLoginProps> = ({ onSubmit }: TecnoFixLoginProps)
               Crear cuenta
             </a>
           </p>
+          
+          
+          {/*onNavigateToRegisterTechnician && (
+            <p style={styles.secondaryLine}>
+              ¿Eres administrador?{" "}
+              <button
+                type="button"
+                onClick={onNavigateToRegisterTechnician}
+                style={styles.linkButton}
+              >
+                Registrar técnico
+              </button>
+            </p>
+          )}
+
+          {(import.meta as any).env?.DEV && onSaveToken && (
+            <details style={styles.devPanel}>
+              <summary style={styles.devSummary}>
+                Sesión de prueba (desarrollo)
+              </summary>
+              <p style={styles.devText}>
+                Pega el token JWT de técnico o administrador generado con{" "}
+                <code>dotnet user-jwts</code> para probar el panel.
+              </p>
+              <textarea
+                value={devToken}
+                onChange={(e) => setDevToken(e.target.value)}
+                rows={3}
+                placeholder="eyJhbGciOiJIUzI1NiIs..."
+                style={styles.devInput}
+              />
+              <button
+                type="button"
+                disabled={!devToken.trim()}
+                onClick={() => onSaveToken(devToken.trim())}
+                style={{
+                  ...styles.devButton,
+                  opacity: devToken.trim() ? 1 : 0.55,
+                  cursor: devToken.trim() ? "pointer" : "not-allowed",
+                }}
+              >
+                Usar token y entrar
+              </button>
+            </details>
+          )*/}
         </div>
 
         {/* RIGHT: welcome */}
@@ -209,7 +269,7 @@ const TecnoFixLogin: FC<TecnoFixLoginProps> = ({ onSubmit }: TecnoFixLoginProps)
   );
 };
 
-const styles: { [key: string]: React.CSSProperties } = {
+const styles: { [key: string]: CSSProperties } = {
   page: {
     fontFamily:
       "'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
@@ -335,6 +395,74 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: "#059669",
     fontWeight: 700,
     textDecoration: "none",
+  },
+  secondaryLine: {
+    textAlign: "center",
+    marginTop: 8,
+    marginBottom: 0,
+    fontSize: 13,
+    color: "#94A3B8",
+  },
+  linkButton: {
+    border: "none",
+    background: "none",
+    padding: 0,
+    color: "#059669",
+    font: "inherit",
+    fontWeight: 700,
+    cursor: "pointer",
+  },
+  errorMessage: {
+    marginBottom: 20,
+    padding: "11px 14px",
+    borderRadius: 8,
+    color: "#F56558",
+    background: "#FEE2E2",
+    fontSize: 13,
+    fontWeight: 600,
+    lineHeight: 1.5,
+  },
+  devPanel: {
+    marginTop: 18,
+    paddingTop: 14,
+    borderTop: "1px solid #E2E8F0",
+  },
+  devSummary: {
+    color: "#64748B",
+    fontSize: 12.5,
+    fontWeight: 700,
+    cursor: "pointer",
+  },
+  devText: {
+    margin: "10px 0",
+    color: "#64748B",
+    fontSize: 12,
+    lineHeight: 1.5,
+  },
+  devInput: {
+    width: "100%",
+    minHeight: 66,
+    padding: 10,
+    border: "1.5px solid #CBD5E1",
+    borderRadius: 8,
+    color: "#0F172A",
+    fontFamily: "inherit",
+    fontSize: 12,
+    lineHeight: 1.4,
+    resize: "vertical",
+    boxSizing: "border-box",
+  },
+  devButton: {
+    width: "100%",
+    marginTop: 8,
+    padding: 10,
+    border: "1px solid #CBD5E1",
+    borderRadius: 8,
+    background: "#F1F5F9",
+    color: "#065F46",
+    fontFamily: "inherit",
+    fontSize: 12.5,
+    fontWeight: 700,
   },
   welcomeSide: {
     background: "#F1F5F9",
