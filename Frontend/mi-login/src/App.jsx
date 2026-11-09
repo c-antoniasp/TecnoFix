@@ -151,20 +151,15 @@ function App() {
   }, [currentScreen, loadOrders]);
 
   const handleLogin = () => {
-    setLoginError(null);
+  setLoginError(null);
 
-    // Temporal: esta rama todavía no tiene /api/auth/login. El panel usa el
-    // token JWT guardado en localStorage mientras se integra Auth.
-    const token = localStorage.getItem(TOKEN_KEY);
+  if (import.meta.env.DEV) {
+    localStorage.setItem(TOKEN_KEY, "dev-technician");
+    setCurrentScreen("technicianDiagnosis");
+    return;
+  }
 
-    if (!token) {
-      setLoginError(
-        "No hay una sesión activa. Configura un token de prueba para continuar."
-      );
-      return;
-    }
-
-    setCurrentScreen(getScreenForToken(token));
+  setLoginError("Debe iniciar sesión.");
   };
 
   const handleSaveDevToken = (token) => {
