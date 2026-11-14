@@ -13,12 +13,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
+// Una sola instancia: si se crea una nueva en cada DbContext, EF Core arma un proveedor
+// interno por petición y a las 20 lanza ManyServiceProvidersCreatedWarning (error 500).
+var enumNameTranslator = new NpgsqlNullNameTranslator();
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
         npgsql => npgsql
-            .MapEnum<UserRole>("user_role", nameTranslator: new NpgsqlNullNameTranslator())
-            .MapEnum<OrderStatus>("order_status", nameTranslator: new NpgsqlNullNameTranslator())));
+            .MapEnum<UserRole>("user_role", nameTranslator: enumNameTranslator)
+            .MapEnum<OrderStatus>("order_status", nameTranslator: enumNameTranslator)));
 
 // Orígenes permitidos: en producción se definen con Cors__AllowedOrigins__0, __1, ...
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
