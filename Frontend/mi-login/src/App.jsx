@@ -4,6 +4,7 @@ import TecnoFixDashboard from "./components/TecnoFixDashboard";
 import TecnoFixProfile from "./components/TecnoFixProfile";
 import { TecnoFixRegister } from "./components/TecnoFixRegister";
 import TecnoFixRegisterTechnician from "./components/TecnoFixRegisterTechnician";
+import TecnoFixEquipmentTypes from "./components/TecnoFixEquipmentTypes";
 import { logout as apiLogout } from "./Api/auth";
 import { ApiError } from "./Api/client";
 import { registerTechnician } from "./Api/technician";
@@ -31,6 +32,7 @@ function App() {
     setTechRegSuccess(null);
     if (section === "Mis datos") setView("profile");
     else if (section === "Técnicos") setView("registerTechnician");
+    else if (section === "Tipos de equipo") setView("equipmentTypes");
     else setView("dashboard");
   };
 
@@ -118,6 +120,18 @@ function App() {
         error={techRegError}
         successMessage={techRegSuccess}
         onBack={() => handleNavigate("Resumen")}
+      />
+    );
+  }
+
+  if (view === "equipmentTypes" && user.role === "ADMIN") {
+    return (
+      <TecnoFixEquipmentTypes
+        userName={user.name}
+        role={role}
+        onNavigate={handleNavigate}
+        onLogout={handleLogout}
+        onSessionExpired={(message) => handleRequireLogin(message, "error")}
       />
     );
   }

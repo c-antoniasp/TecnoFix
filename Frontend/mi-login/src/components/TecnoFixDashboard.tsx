@@ -24,7 +24,7 @@ interface DashboardLayoutProps {
 export const DashboardLayout: FC<DashboardLayoutProps> = ({ children, active, role, userName, onNavigate, onLogout, navigationDisabled = false }) => {
   const navItems = role === "Cliente"
     ? ["Resumen"]
-    : role === "Administrador" ? ["Resumen", "Órdenes", "Estadísticas", "Técnicos"] : ["Resumen", "Órdenes", "Mis tareas"];
+    : role === "Administrador" ? ["Resumen", "Órdenes", "Estadísticas", "Técnicos", "Tipos de equipo"] : ["Resumen", "Órdenes", "Mis tareas"];
 
   return (
     <div className="tf-dashboard">
@@ -49,7 +49,7 @@ export const DashboardLayout: FC<DashboardLayoutProps> = ({ children, active, ro
                 onClick={() => onNavigate?.(item)}
                 disabled={navigationDisabled}
               >
-                <span className="tf-navIcon">{item === "Resumen" ? "▣" : item === "Órdenes" ? "▤" : item === "Técnicos" ? "⚒" : "◷"}</span>
+                <span className="tf-navIcon">{item === "Resumen" ? "▣" : item === "Órdenes" ? "▤" : item === "Técnicos" ? "⚒" : item === "Tipos de equipo" ? "▦" : "◷"}</span>
                 {item}
               </button>
             ))}

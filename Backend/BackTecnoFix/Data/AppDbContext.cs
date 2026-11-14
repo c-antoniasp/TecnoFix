@@ -8,6 +8,7 @@ public class AppDbContext : DbContext
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
     public DbSet<User> users => Set<User>();
+    public DbSet<EquipmentType> equipmentTypes => Set<EquipmentType>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -30,6 +31,18 @@ public class AppDbContext : DbContext
             e.Property(x => x.createdAt).HasColumnName("created_at");
             e.HasIndex(x => x.email).IsUnique();
             e.HasIndex(x => x.rut).IsUnique();
+        });
+
+        // Catálogo de tipos de equipo (ADM-001).
+        modelBuilder.Entity<EquipmentType>(e =>
+        {
+            e.ToTable("equipment_types");
+            e.HasKey(x => x.id);
+            e.Property(x => x.id).HasColumnName("id");
+            e.Property(x => x.name).HasColumnName("name").IsRequired();
+            e.Property(x => x.description).HasColumnName("description");
+            e.Property(x => x.enabled).HasColumnName("enabled");
+            e.HasIndex(x => x.name).IsUnique();
         });
     }
 }

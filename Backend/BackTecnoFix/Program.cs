@@ -83,6 +83,10 @@ builder.Services.AddScoped<IClientService, ClientService>();
 builder.Services.AddScoped<IEngineerRepository, EngineerRepository>();
 builder.Services.AddScoped<ITechnicianService, TechnicianService>();
 
+// Catálogo de tipos de equipo (ADM-001).
+builder.Services.AddScoped<IEquipmentTypeRepository, EquipmentTypeRepository>();
+builder.Services.AddScoped<IEquipmentTypeService, EquipmentTypeService>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
