@@ -1,5 +1,7 @@
 using TecnoFix.Data;
 using TecnoFix.Services;
+using BackTecnoFix.Repositories;
+using BackTecnoFix.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +26,10 @@ builder.Services.AddCors(options =>
 builder.Services.AddSingleton<IClientRepository, ClientRepository>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IClientService, ClientService>();
+
+// Módulo ADM-001: Catálogo de Tipos de Equipo
+builder.Services.AddScoped<IEquipmentTypeRepository, EquipmentTypeRepository>();
+builder.Services.AddScoped<IEquipmentTypeService, EquipmentTypeService>();
 
 var app = builder.Build();
 
