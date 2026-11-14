@@ -28,3 +28,8 @@ export function updateEquipmentType(id: string, request: EquipmentTypeRequest): 
 export function toggleEquipmentTypeStatus(id: string): Promise<EquipmentType> {
   return apiFetch<EquipmentType>(`/equipment-types/${id}/status`, { method: "PATCH" });
 }
+
+// Tipos de equipo que se ofrecen al registrar una orden (ORD-001).
+export function getEnabledEquipmentTypes(): Promise<EquipmentType[]> {
+  return apiFetch<EquipmentType[]>("/equipment-types/enabled");
+}

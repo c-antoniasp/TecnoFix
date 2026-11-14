@@ -16,7 +16,9 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        npgsql => npgsql.MapEnum<UserRole>("user_role", nameTranslator: new NpgsqlNullNameTranslator())));
+        npgsql => npgsql
+            .MapEnum<UserRole>("user_role", nameTranslator: new NpgsqlNullNameTranslator())
+            .MapEnum<OrderStatus>("order_status", nameTranslator: new NpgsqlNullNameTranslator())));
 
 // Orígenes permitidos: en producción se definen con Cors__AllowedOrigins__0, __1, ...
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
@@ -86,6 +88,10 @@ builder.Services.AddScoped<ITechnicianService, TechnicianService>();
 // Catálogo de tipos de equipo (ADM-001).
 builder.Services.AddScoped<IEquipmentTypeRepository, EquipmentTypeRepository>();
 builder.Services.AddScoped<IEquipmentTypeService, EquipmentTypeService>();
+
+// Órdenes de reparación (ORD-001).
+builder.Services.AddScoped<IRepairOrderRepository, RepairOrderRepository>();
+builder.Services.AddScoped<IRepairOrderService, RepairOrderService>();
 
 var app = builder.Build();
 

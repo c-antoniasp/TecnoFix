@@ -5,6 +5,7 @@ import TecnoFixProfile from "./components/TecnoFixProfile";
 import { TecnoFixRegister } from "./components/TecnoFixRegister";
 import TecnoFixRegisterTechnician from "./components/TecnoFixRegisterTechnician";
 import TecnoFixEquipmentTypes from "./components/TecnoFixEquipmentTypes";
+import TecnoFixRegisterOrder from "./components/TecnoFixRegisterOrder";
 import { logout as apiLogout } from "./Api/auth";
 import { ApiError } from "./Api/client";
 import { registerTechnician } from "./Api/technician";
@@ -33,6 +34,7 @@ function App() {
     if (section === "Mis datos") setView("profile");
     else if (section === "Técnicos") setView("registerTechnician");
     else if (section === "Tipos de equipo") setView("equipmentTypes");
+    else if (section === "Órdenes") setView("registerOrder");
     else setView("dashboard");
   };
 
@@ -127,6 +129,19 @@ function App() {
   if (view === "equipmentTypes" && user.role === "ADMIN") {
     return (
       <TecnoFixEquipmentTypes
+        userName={user.name}
+        role={role}
+        onNavigate={handleNavigate}
+        onLogout={handleLogout}
+        onSessionExpired={(message) => handleRequireLogin(message, "error")}
+      />
+    );
+  }
+
+  // Registro de órdenes (ORD-001): técnicos y administradores.
+  if (view === "registerOrder" && (user.role === "ADMIN" || user.role === "TECHNICIAN")) {
+    return (
+      <TecnoFixRegisterOrder
         userName={user.name}
         role={role}
         onNavigate={handleNavigate}
