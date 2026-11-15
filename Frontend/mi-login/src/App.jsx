@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import TecnoFixLogin from "./components/TecnoFixLogin";
 import TecnoFixDashboard from "./components/TecnoFixDashboard";
 import TecnoFixProfile from "./components/TecnoFixProfile";
 import { TecnoFixRegister } from "./components/TecnoFixRegister";
 import TecnoFixRegisterTechnician from "./components/TecnoFixRegisterTechnician";
+import TecnoFixEquipmentTypes from "./components/TecnoFixEquipmentTypes";
+import TecnoFixRegisterOrder from "./components/TecnoFixRegisterOrder";
+import TecnoFixDiagnosisPage from "./components/TecnoFixDiagnosisPage";
+import TecnoFixClientOrders from "./components/TecnoFixClientOrders";
 import { logout as apiLogout } from "./Api/auth";
 import { ApiError } from "./Api/client";
 import { registerTechnician } from "./Api/technician";
@@ -31,6 +35,9 @@ function App() {
     setTechRegSuccess(null);
     if (section === "Mis datos") setView("profile");
     else if (section === "Técnicos") setView("registerTechnician");
+    else if (section === "Tipos de equipo") setView("equipmentTypes");
+    else if (section === "Órdenes") setView(user?.role === "CLIENT" ? "clientOrders" : "registerOrder");
+    else if (section === "Diagnóstico") setView("diagnosis");
     else setView("dashboard");
   };
 
@@ -47,12 +54,16 @@ function App() {
   };
 
   // El endpoint elimina la cookie al cambiar la contraseña; sincronizamos la UI.
-  const handleRequireLogin = (message, type) => {
+  const handleRequireLogin = useCallback((message, type) => {
     setLoginNotice({ message, type });
     setUser(null);
     setAuthView("login");
     setView("dashboard");
-  };
+  }, []);
+
+  const handleSessionExpired = useCallback((message) => {
+    handleRequireLogin(message, "error");
+  }, [handleRequireLogin]);
 
   // Tras registrarse, el cliente vuelve al login para entrar con la contraseña
   // temporal que recibió por correo (USU-002).
@@ -118,6 +129,54 @@ function App() {
         error={techRegError}
         successMessage={techRegSuccess}
         onBack={() => handleNavigate("Resumen")}
+      />
+    );
+  }
+
+  if (view === "equipmentTypes" && user.role === "ADMIN") {
+    return (
+      <TecnoFixEquipmentTypes
+        userName={user.name}
+        role={role}
+        onNavigate={handleNavigate}
+        onLogout={handleLogout}
+        onSessionExpired={(message) => handleRequireLogin(message, "error")}
+      />
+    );
+  }
+
+  // Registro de órdenes (ORD-001): técnicos y administradores.
+  if (view === "registerOrder" && (user.role === "ADMIN" || user.role === "TECHNICIAN")) {
+    return (
+      <TecnoFixRegisterOrder
+        userName={user.name}
+        role={role}
+        onNavigate={handleNavigate}
+        onLogout={handleLogout}
+        onSessionExpired={(message) => handleRequireLogin(message, "error")}
+      />
+    );
+  }
+
+  // Diagnóstico y presupuesto (ORD-002): solo técnicos.
+  if (view === "diagnosis" && user.role === "TECHNICIAN") {
+    return (
+      <TecnoFixDiagnosisPage
+        userName={user.name}
+        onNavigate={handleNavigate}
+        onLogout={handleLogout}
+        onSessionExpired={(message) => handleRequireLogin(message, "error")}
+      />
+    );
+  }
+
+  if (view === "clientOrders" && user.role === "CLIENT") {
+    return (
+      <TecnoFixClientOrders
+        userName={user.name}
+        onNavigate={handleNavigate}
+        onLogout={handleLogout}
+        onSessionExpired={handleSessionExpired}
       />
     );
   }

@@ -86,6 +86,7 @@ public class ChangePasswordApiTests
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("Contraseña actualizada correctamente.", body.GetProperty("message").GetString());
         Assert.True(body.GetProperty("requiresLogin").GetBoolean());
         Assert.Equal(ChangePasswordTestData.firstUserId, factory.repository.requestedUserId);
         Assert.Equal(1, factory.repository.saveCount);
@@ -158,10 +159,12 @@ public class ChangePasswordApiTests
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", createToken());
         var request = ChangePasswordTestData.validRequest();
         request.currentPassword = "Incorrecta123";
+        request.newPassword = request.currentPassword;
+        request.confirmPassword = request.newPassword;
 
         var response = await client.PutAsJsonAsync(endpoint, request);
 
-        await assertError(response, HttpStatusCode.BadRequest, "La contraseña actual es incorrecta");
+        await assertError(response, HttpStatusCode.BadRequest, "La contraseña actual es incorrecta.");
         Assert.Equal(0, factory.repository.saveCount);
         Assert.False(response.Headers.Contains("Set-Cookie"));
     }

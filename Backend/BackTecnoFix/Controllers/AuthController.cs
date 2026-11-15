@@ -67,7 +67,7 @@ public class AuthController : ControllerBase
             Response.Cookies.Delete("access_token", createSessionCookieOptions());
             return Ok(new
             {
-                message = "Contraseña actualizada correctamente. Debe iniciar sesión nuevamente.",
+                message = "Contraseña actualizada correctamente.",
                 requiresLogin = true
             });
         }

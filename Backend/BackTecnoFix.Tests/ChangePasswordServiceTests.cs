@@ -35,7 +35,7 @@ public class ChangePasswordServiceTests
         }
 
         await assertRejected(repository, request, 400, $"Debe completar el campo {fieldName}");
-        Assert.Null(repository.requestedUserId);
+        Assert.Equal(field == "current" ? (Guid?)null : ChangePasswordTestData.firstUserId, repository.requestedUserId);
     }
 
     [Fact]
@@ -59,28 +59,18 @@ public class ChangePasswordServiceTests
             "La contraseña debe tener al menos 8 caracteres, una letra y un número");
     }
 
-    [Fact]
-    public async Task incorrectCurrentPasswordIsReportedBeforeAnyOtherRule()
-    {
-        // La nueva contraseña es igual a la digitada como actual y la confirmación no coincide:
-        // aun así debe responder que la actual es incorrecta, porque se compara con la guardada.
-        var request = new ChangePasswordRequestDTO
-        {
-            currentPassword = "Incorrecta123",
-            newPassword = "Incorrecta123",
-            confirmPassword = "Distinta999"
-        };
-
-        await assertRejected(new TestUserRepository(), request, 400, "La contraseña actual es incorrecta");
-    }
-
-    [Fact]
-    public async Task incorrectCurrentPasswordIsRejectedWithoutSaving()
+    [Theory]
+    [InlineData(ChangePasswordTestData.newPassword)]
+    [InlineData("Incorrecta123")]
+    [InlineData(ChangePasswordTestData.currentPassword)]
+    [InlineData(null)]
+    public async Task incorrectCurrentPasswordTakesPrecedenceOverNewPasswordValidation(string? newPassword)
     {
         var request = ChangePasswordTestData.validRequest();
         request.currentPassword = "Incorrecta123";
+        request.newPassword = newPassword;
 
-        await assertRejected(new TestUserRepository(), request, 400, "La contraseña actual es incorrecta");
+        await assertRejected(new TestUserRepository(), request, 400, "La contraseña actual es incorrecta.");
     }
 
     [Theory]
@@ -93,7 +83,7 @@ public class ChangePasswordServiceTests
         repository.passwordHashes[ChangePasswordTestData.firstUserId] = storedPassword;
 
         await assertRejected(repository, ChangePasswordTestData.validRequest(), 400,
-            "La contraseña actual es incorrecta");
+            "La contraseña actual es incorrecta.");
     }
 
     [Fact]
@@ -106,15 +96,21 @@ public class ChangePasswordServiceTests
             "Las contraseñas ingresadas no coinciden");
     }
 
-    [Fact]
-    public async Task unchangedPasswordIsRejectedWithoutSaving()
+    [Theory]
+    [InlineData(ChangePasswordTestData.currentPassword, ChangePasswordTestData.currentPassword)]
+    [InlineData("Corta1", null)]
+    public async Task unchangedPasswordTakesPrecedenceOverOtherNewPasswordValidation(
+        string storedPassword, string? confirmPassword)
     {
+        var repository = new TestUserRepository();
+        repository.passwordHashes[ChangePasswordTestData.firstUserId] = BCrypt.Net.BCrypt.HashPassword(storedPassword, 4);
         var request = ChangePasswordTestData.validRequest();
-        request.newPassword = ChangePasswordTestData.currentPassword;
-        request.confirmPassword = request.newPassword;
+        request.currentPassword = storedPassword;
+        request.newPassword = storedPassword;
+        request.confirmPassword = confirmPassword;
 
-        await assertRejected(new TestUserRepository(), request, 400,
-            "La nueva contraseña debe ser distinta de la actual");
+        await assertRejected(repository, request, 400,
+            "La nueva contraseña debe ser distinta de la actual.");
     }
 
     [Fact]
@@ -134,7 +130,7 @@ public class ChangePasswordServiceTests
         Assert.Equal(otherUserHash, repository.passwordHashes[ChangePasswordTestData.secondUserId]);
 
         await assertRejected(repository, ChangePasswordTestData.validRequest(), 400,
-            "La contraseña actual es incorrecta", expectedSaveCount: 1);
+            "La contraseña actual es incorrecta.", expectedSaveCount: 1);
     }
 
     [Theory]

@@ -4,8 +4,8 @@ import { Check, Eye, EyeOff } from "lucide-react";
 import { changePassword } from "../Api/auth";
 import type { ChangePasswordRequest } from "../Api/auth";
 import { ApiError } from "../Api/client";
-import ConfirmDialog from "./ConfirmDialog";
 import { requiredFieldMessage } from "../utils/validation";
+import ConfirmationDialog from "./ConfirmationDialog";
 
 interface TecnoFixChangePasswordProps {
   onCancel: () => void;
@@ -15,41 +15,42 @@ interface TecnoFixChangePasswordProps {
   onSubmittingChange: (submitting: boolean) => void;
 }
 
-type FieldErrors = Partial<Record<keyof ChangePasswordRequest, string>>;
-
 const passwordFields = [
   { name: "currentPassword", label: "Contraseña actual", visibilityLabel: "contraseña actual", autoComplete: "current-password" },
   { name: "newPassword", label: "Nueva contraseña", visibilityLabel: "nueva contraseña", autoComplete: "new-password" },
   { name: "confirmPassword", label: "Confirmación de la nueva contraseña", visibilityLabel: "confirmación de nueva contraseña", autoComplete: "new-password" },
 ] as const;
 
-// El frontend solo comprueba que los campos no estén vacíos. Las demás reglas
-// (contraseña actual correcta, formato, confirmación y distinta de la actual) las
-// valida el backend en ese orden, empezando por la contraseña guardada en la base
-// de datos, para que el mensaje dependa siempre de lo registrado y no de lo digitado.
-function validatePasswords(request: ChangePasswordRequest): FieldErrors {
-  const errors: FieldErrors = {};
-  if (!request.currentPassword.trim()) errors.currentPassword = requiredFieldMessage("Contraseña actual");
-  if (!request.newPassword.trim()) errors.newPassword = requiredFieldMessage("Nueva contraseña");
-  if (!request.confirmPassword.trim()) errors.confirmPassword = requiredFieldMessage("Confirmación de la nueva contraseña");
-  return errors;
-}
-
 export default function TecnoFixChangePassword({ onCancel, onPasswordChanged, onSessionExpired, isSubmitting, onSubmittingChange }: TecnoFixChangePasswordProps) {
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [currentPasswordError, setCurrentPasswordError] = useState("");
   const [requestError, setRequestError] = useState("");
+  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [visiblePasswords, setVisiblePasswords] = useState<Partial<Record<keyof ChangePasswordRequest, boolean>>>({});
+  const formRef = useRef<HTMLFormElement>(null);
   const controller = useRef<AbortController | null>(null);
-  const formRef = useRef<HTMLFormElement | null>(null);
-  // Datos ya validados que esperan la confirmación «¿Está seguro?».
-  const [pendingRequest, setPendingRequest] = useState<ChangePasswordRequest | null>(null);
 
   useEffect(() => () => controller.current?.abort(), []);
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (controller.current) return;
-    const form = event.currentTarget;
+    if (controller.current || isConfirmationOpen) return;
+
+    setRequestError("");
+    const currentPassword = event.currentTarget.elements.namedItem("currentPassword") as HTMLInputElement;
+    if (!currentPassword.value.trim()) {
+      setCurrentPasswordError(requiredFieldMessage("Contraseña actual"));
+      currentPassword.focus();
+      return;
+    }
+
+    setIsConfirmationOpen(true);
+  };
+
+  const handleConfirm = async () => {
+    const form = formRef.current;
+    if (!form || !isConfirmationOpen || controller.current) return;
+
+    setIsConfirmationOpen(false);
     // Las contraseñas viven en los campos, nunca en la sesión ni en almacenamiento.
     const data = new FormData(form);
     const request: ChangePasswordRequest = {
@@ -57,29 +58,6 @@ export default function TecnoFixChangePassword({ onCancel, onPasswordChanged, on
       newPassword: String(data.get("newPassword") ?? ""),
       confirmPassword: String(data.get("confirmPassword") ?? ""),
     };
-    const errors = validatePasswords(request);
-    setFieldErrors(errors);
-    setRequestError("");
-    const firstError = passwordFields.find(field => errors[field.name]);
-    if (firstError) {
-      (form.elements.namedItem(firstError.name) as HTMLInputElement).focus();
-      return;
-    }
-
-    // Antes de guardar se pide confirmación (REQ NF01).
-    setPendingRequest(request);
-  };
-
-  const handleConfirm = () => {
-    const request = pendingRequest;
-    setPendingRequest(null);
-    if (request) void saveNewPassword(request);
-  };
-
-  const saveNewPassword = async (request: ChangePasswordRequest) => {
-    const form = formRef.current;
-    if (controller.current || !form) return;
-
     const abortController = new AbortController();
     controller.current = abortController;
     setVisiblePasswords({});
@@ -88,7 +66,7 @@ export default function TecnoFixChangePassword({ onCancel, onPasswordChanged, on
       const response = await changePassword(request, abortController.signal);
       if (abortController.signal.aborted) return;
       form.reset();
-      onPasswordChanged(response.message || "Contraseña actualizada correctamente. Debe iniciar sesión nuevamente.");
+      onPasswordChanged(response.message || "Contraseña actualizada correctamente.");
     } catch (error) {
       if (abortController.signal.aborted) return;
       if (error instanceof ApiError && (error.status === 401 || error.status === 409)) {
@@ -106,14 +84,6 @@ export default function TecnoFixChangePassword({ onCancel, onPasswordChanged, on
   };
 
   return (
-    <>
-    <ConfirmDialog
-      open={pendingRequest !== null}
-      message="¿Está seguro de cambiar su contraseña? Deberá iniciar sesión nuevamente."
-      confirmLabel="Sí, cambiar contraseña"
-      onConfirm={handleConfirm}
-      onCancel={() => setPendingRequest(null)}
-    />
     <form ref={formRef} className="tf-passwordForm" onSubmit={handleSubmit} noValidate aria-labelledby="tf-password-title" aria-busy={isSubmitting}>
       <h2 id="tf-password-title">Cambiar contraseña</h2>
       {requestError && <p className="tf-passwordRequestError" role="alert">{requestError}</p>}
@@ -130,10 +100,10 @@ export default function TecnoFixChangePassword({ onCancel, onPasswordChanged, on
                 autoComplete={field.autoComplete}
                 required
                 autoFocus={field.name === "currentPassword"}
-                aria-invalid={Boolean(fieldErrors[field.name])}
-                aria-describedby={fieldErrors[field.name] ? `tf-${field.name}-error` : undefined}
+                aria-invalid={field.name === "currentPassword" && Boolean(currentPasswordError)}
+                aria-describedby={field.name === "currentPassword" && currentPasswordError ? "tf-currentPassword-error" : undefined}
                 onInput={() => {
-                  setFieldErrors(errors => ({ ...errors, [field.name]: undefined }));
+                  if (field.name === "currentPassword") setCurrentPasswordError("");
                   setRequestError("");
                 }}
               />
@@ -149,8 +119,8 @@ export default function TecnoFixChangePassword({ onCancel, onPasswordChanged, on
                 {visiblePasswords[field.name] ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
               </button>
             </div>
-            {fieldErrors[field.name] && (
-              <p className="tf-passwordFieldError" id={`tf-${field.name}-error`} role="alert">{fieldErrors[field.name]}</p>
+            {field.name === "currentPassword" && currentPasswordError && (
+              <p className="tf-passwordFieldError" id="tf-currentPassword-error" role="alert">{currentPasswordError}</p>
             )}
           </div>
         ))}
@@ -162,7 +132,12 @@ export default function TecnoFixChangePassword({ onCancel, onPasswordChanged, on
           <button className="tf-button" type="button" onClick={onCancel}>Cancelar</button>
         </div>
       </fieldset>
+      <ConfirmationDialog
+        open={isConfirmationOpen}
+        message="¿Está seguro de que desea cambiar su contraseña?"
+        onCancel={() => setIsConfirmationOpen(false)}
+        onConfirm={handleConfirm}
+      />
     </form>
-    </>
   );
 }

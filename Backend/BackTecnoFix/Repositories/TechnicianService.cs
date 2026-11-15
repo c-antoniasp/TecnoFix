@@ -8,15 +8,36 @@ namespace TecnoFix.Services
 {
     public class TechnicianService : ITechnicianService
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IEngineerRepository _engineerRepository;
-        private readonly IEmailService _emailService;
+        private const string requiredDiagnosisMessage =
+            "Debe completar el campo Diagnóstico técnico";
+        private const string requiredLaborCostMessage =
+            "Debe completar el campo Costo de mano de obra";
+        private const string requiredPartsCostMessage =
+            "Debe completar el campo Costo de repuestos";
+        private const string invalidCostMessage =
+            "El costo ingresado no es válido";
+        private const string orderNotFoundMessage =
+            "La orden de reparación no existe";
+        private const string orderNotAvailableMessage =
+            "La orden no se encuentra disponible para diagnóstico";
+        private const string diagnosisAlreadyExistsMessage =
+            "La orden ya tiene un diagnóstico registrado";
 
-        public TechnicianService(IUserRepository userRepository, IEngineerRepository engineerRepository, IEmailService emailService)
+        private readonly IUserRepository _userRepository;
+        private readonly ITechnicianRepository _technicianRepository;
+        private readonly IEmailService _emailService;
+        private readonly IRepairOrderRepository _repairOrderRepository;
+
+        public TechnicianService(
+            IUserRepository userRepository,
+            ITechnicianRepository technicianRepository,
+            IEmailService emailService,
+            IRepairOrderRepository repairOrderRepository)
         {
             _userRepository = userRepository;
-            _engineerRepository = engineerRepository;
+            _technicianRepository = technicianRepository;
             _emailService = emailService;
+            _repairOrderRepository = repairOrderRepository;
         }
 
         public async Task registerTechnician(RegisterTechnicianRequestDTO request)
@@ -55,7 +76,7 @@ namespace TecnoFix.Services
                 accountStatus = true
             };
 
-            await _engineerRepository.add(newTechnician);
+            await _technicianRepository.add(newTechnician);
 
             // Envía la contraseña temporal al técnico para que pueda iniciar sesión.
             const string roleDescription = "Ha sido registrado como técnico en TecnoFix.";
@@ -74,5 +95,113 @@ namespace TecnoFix.Services
             }
         }
 
+        // ORD-002: listado de órdenes que pueden diagnosticarse.
+        public async Task<List<RepairOrderSummaryDTO>> getOrdersForDiagnosis()
+        {
+            var orders = await _repairOrderRepository.findByStatuses(
+                OrderStatus.RECEIVED,
+                OrderStatus.IN_DIAGNOSIS);
+
+            return orders.Select(RepairOrderSummaryDTO.fromOrder).ToList();
+        }
+
+        // ORD-002: al abrir la orden para diagnosticar, pasa a "En diagnóstico".
+        public async Task startDiagnosis(int orderId, Guid technicianUserId)
+        {
+            var order = await getOrderForDiagnosis(orderId);
+
+            // Si ya está en diagnóstico, no se duplica el evento en la bitácora.
+            if (order.status == OrderStatus.IN_DIAGNOSIS)
+                return;
+
+            moveToDiagnosis(order, technicianUserId);
+            await _repairOrderRepository.saveChanges();
+        }
+
+        // ORD-002: registrar diagnóstico y presupuesto.
+        public async Task<decimal> registerDiagnosis(
+            int orderId,
+            RegisterDiagnosisRequestDTO request,
+            Guid technicianUserId)
+        {
+            if (request is null)
+                throw new BusinessException("Debe completar los datos del diagnóstico");
+
+            string technicalDiagnosis = request.technicalDiagnosis?.Trim() ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(technicalDiagnosis))
+                throw new BusinessException(requiredDiagnosisMessage);
+
+            if (!request.laborCost.HasValue)
+                throw new BusinessException(requiredLaborCostMessage);
+
+            if (!request.partsCost.HasValue)
+                throw new BusinessException(requiredPartsCostMessage);
+
+            decimal laborCost = request.laborCost.Value;
+            decimal partsCost = request.partsCost.Value;
+
+            if (laborCost < 0 || partsCost < 0)
+                throw new BusinessException(invalidCostMessage);
+
+            var order = await getOrderForDiagnosis(orderId);
+
+            if (order.technicalDiagnosis != null)
+                throw new BusinessException(diagnosisAlreadyExistsMessage);
+
+            // Si el técnico registra el diagnóstico directamente desde "Recibida",
+            // se deja también el evento de paso a "En diagnóstico".
+            if (order.status == OrderStatus.RECEIVED)
+                moveToDiagnosis(order, technicianUserId);
+
+            // El diagnóstico y los costos viven en la misma orden; total_cost lo calcula la base de datos.
+            order.technicalDiagnosis = technicalDiagnosis;
+            order.laborCost = laborCost;
+            order.partsCost = partsCost;
+            order.status = OrderStatus.QUOTED;
+            addLog(order, technicianUserId, OrderStatus.QUOTED, "Diagnóstico y presupuesto registrados");
+
+            // Un solo SaveChanges: orden + bitácora.
+            await _repairOrderRepository.saveChanges();
+
+            return laborCost + partsCost;
+        }
+
+        private async Task<RepairOrder> getOrderForDiagnosis(int orderId)
+        {
+            var order = await _repairOrderRepository.findById(orderId);
+
+            if (order == null)
+                throw new BusinessException(orderNotFoundMessage);
+
+            if (order.status != OrderStatus.RECEIVED &&
+                order.status != OrderStatus.IN_DIAGNOSIS)
+            {
+                throw new BusinessException(orderNotAvailableMessage);
+            }
+
+            return order;
+        }
+
+        private void moveToDiagnosis(RepairOrder order, Guid technicianUserId)
+        {
+            order.status = OrderStatus.IN_DIAGNOSIS;
+            // Si la orden la registró un administrador, el técnico que diagnostica queda como responsable.
+            order.technicianId ??= technicianUserId;
+            addLog(order, technicianUserId, OrderStatus.IN_DIAGNOSIS, "Orden abierta para diagnóstico");
+        }
+
+        private void addLog(RepairOrder order, Guid technicianUserId, OrderStatus status, string comment)
+        {
+            _repairOrderRepository.addOrderLog(new OrderLog
+            {
+                id = Guid.NewGuid(),
+                orderId = order.id,
+                responsibleUserId = technicianUserId,
+                loggedStatus = status,
+                comment = comment,
+                loggedAt = DateTime.UtcNow
+            });
+        }
     }
 }

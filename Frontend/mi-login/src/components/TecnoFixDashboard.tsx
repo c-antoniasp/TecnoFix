@@ -1,5 +1,6 @@
 import type { FC, ReactNode } from "react";
 import { UserRound } from "lucide-react";
+import type { RepairOrderStatus } from "../Api/repairOrders";
 import "./TecnoFixDashboard.css";
 import TecnoFixGear from "./TecnoFixGear";
 
@@ -11,6 +12,26 @@ import TecnoFixGear from "./TecnoFixGear";
 
 export type DashboardRole = "Administrador" | "Técnico" | "Cliente";
 
+const orderStatuses = {
+  RECEIVED: { label: "Recibida", bg: "#E2E8F0", text: "#334155", dot: "#64748B" },
+  IN_DIAGNOSIS: { label: "En diagnóstico", bg: "#FEF3C7", text: "#92400E", dot: "#F59E0B" },
+  QUOTED: { label: "Presupuestada", bg: "#DBEAFE", text: "#1D4ED8", dot: "#3B82F6" },
+  IN_REPAIR: { label: "En reparación", bg: "#EDE9FE", text: "#6D28D9", dot: "#8B5CF6" },
+  READY_FOR_PICKUP: { label: "Lista para retiro", bg: "#D1FAE5", text: "#065F46", dot: "#10B981" },
+  DELIVERED: { label: "Entregada", bg: "#DCFCE7", text: "#166534", dot: "#22C55E" },
+  REJECTED: { label: "Rechazada", bg: "#FEE2E2", text: "#991B1B", dot: "#EF4444" },
+};
+
+export function RepairOrderStatusBadge({ status }: { status: RepairOrderStatus }) {
+  const meta = orderStatuses[status] ?? orderStatuses.RECEIVED;
+  return (
+    <span className="tf-status" style={{ background: meta.bg, color: meta.text }}>
+      <span className="tf-statusDot" style={{ background: meta.dot }} />
+      {meta.label}
+    </span>
+  );
+}
+
 interface DashboardLayoutProps {
   children: ReactNode;
   active: string;
@@ -19,15 +40,17 @@ interface DashboardLayoutProps {
   onNavigate?: (label: string) => void;
   onLogout?: () => void;
   navigationDisabled?: boolean;
+  // Clase extra para pantallas con estilos propios (por ejemplo, tf-diagnosis).
+  className?: string;
 }
 
-export const DashboardLayout: FC<DashboardLayoutProps> = ({ children, active, role, userName, onNavigate, onLogout, navigationDisabled = false }) => {
+export const DashboardLayout: FC<DashboardLayoutProps> = ({ children, active, role, userName, onNavigate, onLogout, navigationDisabled = false, className }) => {
   const navItems = role === "Cliente"
-    ? ["Resumen"]
-    : role === "Administrador" ? ["Resumen", "Órdenes", "Estadísticas", "Técnicos"] : ["Resumen", "Órdenes", "Mis tareas"];
+    ? ["Resumen", "Órdenes"]
+    : role === "Administrador" ? ["Resumen", "Órdenes", "Estadísticas", "Técnicos", "Tipos de equipo"] : ["Resumen", "Órdenes", "Diagnóstico", "Mis tareas"];
 
   return (
-    <div className="tf-dashboard">
+    <div className={className ? `tf-dashboard ${className}` : "tf-dashboard"}>
       <div className="tf-shell">
         <aside className="tf-sidebar">
           <div className="tf-brand">
@@ -49,7 +72,7 @@ export const DashboardLayout: FC<DashboardLayoutProps> = ({ children, active, ro
                 onClick={() => onNavigate?.(item)}
                 disabled={navigationDisabled}
               >
-                <span className="tf-navIcon">{item === "Resumen" ? "▣" : item === "Órdenes" ? "▤" : item === "Técnicos" ? "⚒" : "◷"}</span>
+                <span className="tf-navIcon">{item === "Resumen" ? "▣" : item === "Órdenes" ? "▤" : item === "Técnicos" ? "⚒" : item === "Tipos de equipo" ? "▦" : item === "Diagnóstico" ? "✚" : "◷"}</span>
                 {item}
               </button>
             ))}

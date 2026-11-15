@@ -91,7 +91,21 @@ namespace TecnoFix.Services
                 throw new AuthException(400, "Debe completar el campo Contraseña actual");
             }
 
-            if (string.IsNullOrWhiteSpace(request.newPassword))
+            var currentPasswordHash = await userRepository.findPasswordById(userId)
+                ?? throw new AuthException(401, "Debe iniciar sesión nuevamente.");
+
+            if (!passwordMatches(request.currentPassword, currentPasswordHash))
+            {
+                throw new AuthException(400, "La contraseña actual es incorrecta.");
+            }
+
+            var newPassword = request.newPassword;
+            if (newPassword is not null && passwordMatches(newPassword, currentPasswordHash))
+            {
+                throw new AuthException(400, "La nueva contraseña debe ser distinta de la actual.");
+            }
+
+            if (string.IsNullOrWhiteSpace(newPassword))
             {
                 throw new AuthException(400, "Debe completar el campo Nueva contraseña");
             }
@@ -101,32 +115,19 @@ namespace TecnoFix.Services
                 throw new AuthException(400, "Debe completar el campo Confirmación de la nueva contraseña");
             }
 
-            var currentPasswordHash = await userRepository.findPasswordById(userId)
-                ?? throw new AuthException(401, "Debe iniciar sesión nuevamente.");
-
-            if (!passwordMatches(request.currentPassword, currentPasswordHash))
-            {
-                throw new AuthException(400, "La contraseña actual es incorrecta");
-            }
-
-            if (request.newPassword.Length < 8
-                || !request.newPassword.Any(char.IsLetter)
-                || !request.newPassword.Any(char.IsDigit))
+            if (newPassword.Length < 8
+                || !newPassword.Any(char.IsLetter)
+                || !newPassword.Any(char.IsDigit))
             {
                 throw new AuthException(400, "La contraseña debe tener al menos 8 caracteres, una letra y un número");
             }
 
-            if (!string.Equals(request.newPassword, request.confirmPassword, StringComparison.Ordinal))
+            if (!string.Equals(newPassword, request.confirmPassword, StringComparison.Ordinal))
             {
                 throw new AuthException(400, "Las contraseñas ingresadas no coinciden");
             }
 
-            if (passwordMatches(request.newPassword, currentPasswordHash))
-            {
-                throw new AuthException(400, "La nueva contraseña debe ser distinta de la actual");
-            }
-
-            var newPasswordHash = BCrypt.Net.BCrypt.HashPassword(request.newPassword);
+            var newPasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
             if (!await userRepository.updatePassword(userId, currentPasswordHash, newPasswordHash))
             {
                 throw new AuthException(409, "La contraseña cambió durante la solicitud. Debe iniciar sesión nuevamente.");
