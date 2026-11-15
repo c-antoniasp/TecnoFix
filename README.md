@@ -78,9 +78,27 @@ Cada cambio de estado queda registrado en una bitácora con fecha, hora y usuari
 |---|---|---|---|
 | USU-001 | Inicio de sesión por rol con JWT en cookie HttpOnly | ✅ | ✅ |
 | USU-002 | Registro de clientes con contraseña temporal | ✅ | ✅ |
-| USU-003 / USU-004 | Ver datos personales y cambiar contraseña | ✅ | ✅ |
+| USU-003 / USU-004 | Ver datos personales y cambiar contraseña (con diálogo de confirmación) | ✅ | ✅ |
 | — | Registro de técnicos (solo administrador) | ✅ | ✅ |
-| — | Panel por rol (administrador, técnico y cliente) | — | ✅ (datos de demostración) |
+| ADM-001 | Catálogo de tipos de equipo: crear, editar, habilitar y deshabilitar (solo administrador) | ✅ | ✅ |
+| ORD-001 | Registro de órdenes de reparación (administrador y técnico) | ✅ | ✅ |
+| ORD-002 | Diagnóstico técnico y presupuesto (técnico) | ✅ | ✅ |
+| — | Consulta de órdenes y aprobación o rechazo del presupuesto (cliente) | ✅ | ✅ |
+| — | Panel por rol (administrador, técnico y cliente) | — | ✅ (secciones pendientes muestran «Próximamente») |
+
+Pendientes: actualización del estado de la reparación, registro de entrega, historial visible de la orden y estadísticas.
+
+### Transiciones de estado implementadas
+
+| Acción | Quién | Estado |
+|---|---|---|
+| Registrar la orden (ORD-001) | Administrador o técnico | → `Recibida` |
+| Abrir la orden para diagnosticar (ORD-002) | Técnico | `Recibida` → `En diagnóstico` |
+| Registrar diagnóstico y presupuesto (ORD-002) | Técnico | `En diagnóstico` → `Presupuestada` |
+| Aprobar el presupuesto | Cliente | `Presupuestada` → `En reparación` |
+| Rechazar el presupuesto | Cliente | `Presupuestada` → `Rechazada` |
+
+Cada transición agrega una entrada en la bitácora (`order_logs`).
 
 ---
 
@@ -101,6 +119,7 @@ Cada cambio de estado queda registrado en una bitácora con fecha, hora y usuari
 - **Framework:** React (Vite)
 - **Arquitectura:** Basada en componentes
 - **Íconos:** lucide-react
+- **Pruebas:** Vitest, Testing Library y jsdom
 - **Gestión de paquetes:** NPM
 
 ### Base de Datos
@@ -123,32 +142,39 @@ TecnoFix/
 │
 ├── Backend/
 │   ├── BackTecnoFix/
-│   │   ├── Controller/          # ClienteController, TechnicianController
+│   │   ├── Controller/          # ClienteController, TechnicianController, EquipmentTypeController, RepairOrderController
 │   │   ├── Controllers/         # AuthController (login, logout, cambio de contraseña)
 │   │   ├── Data/                # AppDbContext y repositorio de clientes
 │   │   ├── DTO/                 # Objetos de entrada y salida de la API
-│   │   ├── Exceptions/
-│   │   ├── Models/              # User, Client, Technician, Administrator, UserRole
-│   │   ├── Repositories/        # UserRepository, TechnicianRepository, TechnicianService
-│   │   ├── Services/            # AuthService, ClientService, EmailService
+│   │   ├── Exceptions/          # BusinessException (mensaje y código HTTP de la ERS)
+│   │   ├── Models/              # User, UserRole, EquipmentType, RepairOrder, OrderLog, OrderStatus
+│   │   ├── Repositories/        # UserRepository, TechnicianRepository, EquipmentTypeRepository,
+│   │   │                        # RepairOrderRepository y TechnicianService (diagnóstico)
+│   │   ├── Services/            # AuthService, ClientService, EmailService, EquipmentTypeService, RepairOrderService
 │   │   ├── Program.cs
 │   │   ├── Dockerfile
 │   │   ├── TecnoFixBack.http    # Peticiones de ejemplo para probar la API
 │   │   └── appsettings.json
-│   ├── BackTecnoFix.Tests/      # Pruebas de login y cambio de contraseña
+│   ├── BackTecnoFix.Tests/      # Pruebas xUnit: login, cambio de contraseña, técnicos,
+│   │                            # órdenes (ORD-001), diagnóstico (ORD-002) y presupuesto
+│   ├── Database/                # Scripts SQL para Neon (esquema, sincronización y datos iniciales)
 │   └── ChangePassword.md        # Detalle del contrato de cambio de contraseña
 │
 ├── Frontend/
 │   └── mi-login/
 │       ├── public/              # favicon.svg
 │       ├── src/
-│       │   ├── Api/             # Cliente HTTP (auth.ts, client.ts, technician.ts)
-│       │   ├── components/      # Pantallas: login, registro, paneles, perfil, técnicos
+│       │   ├── Api/             # Cliente HTTP: auth, client, technician, equipmentTypes, repairOrders, diagnosis
+│       │   ├── components/      # Pantallas: login, registro, paneles, perfil, técnicos,
+│       │   │                    # tipos de equipo, registro de órdenes, diagnóstico y órdenes del cliente
+│       │   ├── utils/           # Validaciones y formato de montos y fechas
+│       │   ├── test/            # Pruebas con Vitest y Testing Library (ORD-002)
 │       │   ├── App.jsx          # Navegación entre pantallas según sesión y rol
 │       │   └── main.jsx
 │       ├── index.html
 │       ├── package.json
-│       └── vite.config.js
+│       ├── vite.config.js
+│       └── vitest.config.js
 │
 └── README.md
 ```
@@ -166,6 +192,19 @@ Los directorios `bin/`, `obj/`, `dist/` y `node_modules/` se generan automática
 | `PUT` | `/api/auth/change-password` | Cambia la contraseña del usuario autenticado | Usuario con sesión |
 | `POST` | `/api/cliente/registro` | Registra un cliente con contraseña temporal | Público |
 | `POST` | `/api/technician` | Registra un técnico | Administrador |
+| `GET` | `/api/equipment-types` | Lista todos los tipos de equipo | Administrador |
+| `GET` | `/api/equipment-types/enabled` | Lista los tipos de equipo habilitados | Usuario con sesión |
+| `GET` | `/api/equipment-types/{id}` | Obtiene un tipo de equipo | Administrador |
+| `POST` | `/api/equipment-types` | Crea un tipo de equipo | Administrador |
+| `PUT` | `/api/equipment-types/{id}` | Edita un tipo de equipo | Administrador |
+| `PATCH` | `/api/equipment-types/{id}/status` | Habilita o deshabilita un tipo de equipo | Administrador |
+| `GET` | `/api/repair-orders/clients` | Lista los clientes para el formulario de orden | Administrador, técnico |
+| `POST` | `/api/repair-orders` | Registra una orden de reparación (ORD-001) | Administrador, técnico |
+| `GET` | `/api/repair-orders/mine` | Lista las órdenes del cliente con su presupuesto | Cliente |
+| `PUT` | `/api/repair-orders/{orderId}/budget-decision` | Aprueba o rechaza el presupuesto | Cliente |
+| `GET` | `/api/technician/orders/diagnosis` | Lista las órdenes `Recibida` o `En diagnóstico` (ORD-002) | Técnico |
+| `PATCH` | `/api/technician/orders/{orderId}/diagnosis/start` | Abre la orden y la pasa a `En diagnóstico` | Técnico |
+| `POST` | `/api/technician/orders/{orderId}/diagnosis` | Registra el diagnóstico y el presupuesto | Técnico |
 
 Los errores responden con un JSON `{ "message": "..." }` con el texto definido en la ERS. En `Backend/BackTecnoFix/TecnoFixBack.http` hay ejemplos de cada petición.
 
@@ -216,6 +255,29 @@ npm run dev
 
 La app queda disponible en `http://localhost:5173`. Por defecto se conecta al backend en `http://localhost:5032/api`.
 
+Para correr las pruebas del frontend:
+
+```bash
+cd Frontend/mi-login
+npm test            # una sola vez
+npm run test:watch  # se repiten al guardar cambios
+```
+
+En Windows, ejecútalas desde PowerShell: en Git Bash, Vitest a veces falla con *"Vitest failed to find the current suite"* aunque los tests estén bien.
+
+### 3. Base de datos
+
+Los scripts de `Backend/Database/` se ejecutan en el **SQL Editor** de Neon, en orden de fecha:
+
+| Script | Qué hace |
+|---|---|
+| `2026-10-27_new_schema.sql` | Fase 1: crea `users`, `equipment_types`, `repair_orders` y `order_logs` y copia los usuarios del esquema anterior |
+| `2026-10-27_sync_users.sql` | Fase 2: copia a `users` los usuarios creados en las tablas antiguas después de la fase 1; se puede repetir |
+| `2026-10-27_drop_old_tables.sql` | Fase 3: elimina las tablas antiguas. **No tiene vuelta atrás**; ejecutar solo con el backend nuevo verificado |
+| `2026-11-14_seed_equipment_types.sql` | Carga los tipos de equipo iniciales; se puede repetir sin duplicar |
+
+El formulario de órdenes solo ofrece tipos de equipo habilitados: si la lista aparece vacía, ejecuta el último script o crea tipos desde **Tipos de equipo** con un administrador.
+
 ---
 
 ## Despliegue
@@ -254,6 +316,8 @@ En el plan gratuito de Render el servicio se suspende tras 15 minutos sin uso; l
 - Cada integrante trabaja en su rama `DevNombre`.
 - Los cambios se integran primero en `test` y, una vez revisados, en `main`.
 - `main` es la rama que se despliega en producción.
+- Formato de los commits, en inglés: `[DevNombre] tipo(alcance): descripción`, por ejemplo `[DevCatalina] feat(orders): ORD-001 register repair order`. Tipos habituales: `feat`, `fix`, `refactor`, `test`, `chore` y `docs`.
+- Antes de integrar en `test`, actualiza tu rama con lo último de `test` para resolver los conflictos en tu rama y no en la compartida.
 
 ---
 
