@@ -88,7 +88,7 @@ builder.Services.AddHttpClient<IEmailService, EmailService>();
 builder.Services.AddScoped<IClientService, ClientService>();
 
 // Inyección de dependencias del registro de técnicos.
-builder.Services.AddScoped<IEngineerRepository, EngineerRepository>();
+builder.Services.AddScoped<ITechnicianRepository, TechnicianRepository>();
 builder.Services.AddScoped<ITechnicianService, TechnicianService>();
 
 // Catálogo de tipos de equipo (ADM-001).

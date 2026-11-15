@@ -24,18 +24,18 @@ namespace TecnoFix.Services
             "La orden ya tiene un diagnóstico registrado";
 
         private readonly IUserRepository _userRepository;
-        private readonly IEngineerRepository _engineerRepository;
+        private readonly ITechnicianRepository _technicianRepository;
         private readonly IEmailService _emailService;
         private readonly IRepairOrderRepository _repairOrderRepository;
 
         public TechnicianService(
             IUserRepository userRepository,
-            IEngineerRepository engineerRepository,
+            ITechnicianRepository technicianRepository,
             IEmailService emailService,
             IRepairOrderRepository repairOrderRepository)
         {
             _userRepository = userRepository;
-            _engineerRepository = engineerRepository;
+            _technicianRepository = technicianRepository;
             _emailService = emailService;
             _repairOrderRepository = repairOrderRepository;
         }
@@ -76,7 +76,7 @@ namespace TecnoFix.Services
                 accountStatus = true
             };
 
-            await _engineerRepository.add(newTechnician);
+            await _technicianRepository.add(newTechnician);
 
             // Envía la contraseña temporal al técnico para que pueda iniciar sesión.
             const string roleDescription = "Ha sido registrado como técnico en TecnoFix.";

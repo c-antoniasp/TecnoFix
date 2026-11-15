@@ -46,7 +46,7 @@ public class DiagnosisTests : IAsyncLifetime
         orderId = order.orderNumber;
 
         technicianService = new TechnicianService(
-            new UserRepository(context), new EngineerRepository(context), new NoEmailService(), repairOrderRepository);
+            new UserRepository(context), new TechnicianRepository(context), new NoEmailService(), repairOrderRepository);
     }
 
     public async Task DisposeAsync()

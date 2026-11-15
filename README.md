@@ -129,7 +129,7 @@ TecnoFix/
 │   │   ├── DTO/                 # Objetos de entrada y salida de la API
 │   │   ├── Exceptions/
 │   │   ├── Models/              # User, Client, Technician, Administrator, UserRole
-│   │   ├── Repositories/        # UserRepository, EngineerRepository, TechnicianService
+│   │   ├── Repositories/        # UserRepository, TechnicianRepository, TechnicianService
 │   │   ├── Services/            # AuthService, ClientService, EmailService
 │   │   ├── Program.cs
 │   │   ├── Dockerfile

@@ -3,11 +3,11 @@ using TecnoFix.Models;
 
 namespace TecnoFix.Repositories
 {
-    public class EngineerRepository : IEngineerRepository
+    public class TechnicianRepository : ITechnicianRepository
     {
         private readonly AppDbContext _dbContext;
 
-        public EngineerRepository(AppDbContext dbContext)
+        public TechnicianRepository(AppDbContext dbContext)
         {
             _dbContext = dbContext;
         }
