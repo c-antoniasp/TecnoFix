@@ -70,7 +70,7 @@ namespace TecnoFix.Data
                 e.Property(x => x.reportedFailure).HasColumnName("reported_failure");
                 e.Property(x => x.accessories).HasColumnName("accessories");
                 e.Property(x => x.status).HasColumnName("status");
-                e.Property(x => x.receivedAt).HasColumnName("recieved_at");
+                e.Property(x => x.receivedAt).HasColumnName("received_at").HasColumnType("timestamp without time zone");
 
                 e.HasOne(x => x.diagnosis).WithOne(d => d.order).HasForeignKey<Diagnosis>(d => d.orderId);
             });
@@ -85,7 +85,7 @@ namespace TecnoFix.Data
 
                e.Property(x => x.laborCost).HasColumnName("labor_cost").HasPrecision(12,2);
                e.Property(x => x.partsCost).HasColumnName("parts_cost").HasPrecision(12,2);
-               e.Property(x => x.totalCost).HasPrecision(12,2); 
+               e.Property(x => x.totalCost).HasColumnName("total_cost").HasPrecision(12,2); 
             });
             modelBuilder.Entity<OrderLog>(e =>
             {
@@ -97,7 +97,7 @@ namespace TecnoFix.Data
                e.Property(x => x.userId).HasColumnName("user_id");
                e.Property(x => x.status).HasColumnName("status");
                e.Property(x => x.comment).HasColumnName("comment");
-               e.Property(x => x.createdAt).HasColumnName("created_at");
+               e.Property(x => x.createdAt).HasColumnName("created_at").HasColumnType("timestamp without time zone");
 
                e.HasOne(x => x.order).WithMany().HasForeignKey(x => x.orderId); 
             });    
