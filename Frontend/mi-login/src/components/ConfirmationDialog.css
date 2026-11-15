@@ -1,0 +1,31 @@
+.tf-confirmationDialog {
+  box-sizing: border-box;
+  width: min(28rem, calc(100% - 2rem));
+  padding: 24px;
+  border: 1px solid var(--tf-line, #e2e8f0);
+  border-radius: 16px;
+  background: var(--tf-surface, #fff);
+  color: var(--tf-ink, #0f172a);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, .24);
+}
+
+.tf-confirmationDialog::backdrop {
+  background: rgba(15, 23, 42, .56);
+}
+
+.tf-confirmationDialog p {
+  margin: 0 0 20px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.tf-confirmationActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.tf-confirmationActions .tf-buttonPrimary:hover {
+  background: var(--tf-green-deep, #064e3b);
+}
