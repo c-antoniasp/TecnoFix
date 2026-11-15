@@ -4,6 +4,7 @@ import { Check, Eye, EyeOff } from "lucide-react";
 import { changePassword } from "../Api/auth";
 import type { ChangePasswordRequest } from "../Api/auth";
 import { ApiError } from "../Api/client";
+import { requiredFieldMessage } from "../utils/validation";
 import ConfirmationDialog from "./ConfirmationDialog";
 
 interface TecnoFixChangePasswordProps {
@@ -17,7 +18,7 @@ interface TecnoFixChangePasswordProps {
 const passwordFields = [
   { name: "currentPassword", label: "Contraseña actual", visibilityLabel: "contraseña actual", autoComplete: "current-password" },
   { name: "newPassword", label: "Nueva contraseña", visibilityLabel: "nueva contraseña", autoComplete: "new-password" },
-  { name: "confirmPassword", label: "Confirmar nueva contraseña", visibilityLabel: "confirmación de nueva contraseña", autoComplete: "new-password" },
+  { name: "confirmPassword", label: "Confirmación de la nueva contraseña", visibilityLabel: "confirmación de nueva contraseña", autoComplete: "new-password" },
 ] as const;
 
 export default function TecnoFixChangePassword({ onCancel, onPasswordChanged, onSessionExpired, isSubmitting, onSubmittingChange }: TecnoFixChangePasswordProps) {
@@ -37,7 +38,7 @@ export default function TecnoFixChangePassword({ onCancel, onPasswordChanged, on
     setRequestError("");
     const currentPassword = event.currentTarget.elements.namedItem("currentPassword") as HTMLInputElement;
     if (!currentPassword.value.trim()) {
-      setCurrentPasswordError("Debe completar el campo contraseña actual.");
+      setCurrentPasswordError(requiredFieldMessage("Contraseña actual"));
       currentPassword.focus();
       return;
     }

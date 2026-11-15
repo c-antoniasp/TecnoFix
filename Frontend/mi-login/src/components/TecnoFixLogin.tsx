@@ -2,14 +2,25 @@ import { useEffect, useState } from "react";
 import type { CSSProperties, FC, FormEvent } from "react";
 import { login } from "../Api/auth";
 import type { LoginResponse } from "../Api/auth";
+import TecnoFixGear from "./TecnoFixGear";
+import { VALIDATION_MESSAGES, isValidEmail, requiredFieldMessage } from "../utils/validation";
 
 interface TecnoFixLoginProps {
   // Se llama cuando el login en el backend fue exitoso.
   onLoginSuccess?: (user: LoginResponse) => void;
+  onNavigateToRegister?: () => void;
   notice?: { message: string; type: "success" | "error" } | null;
+  // Correo con el que se completa el formulario, por ejemplo tras registrarse.
+  initialEmail?: string;
 }
-const TecnoFixLogin: FC<TecnoFixLoginProps> = ({ onLoginSuccess, notice }: TecnoFixLoginProps) => {
-  const [email, setEmail] = useState<string>("");
+
+const TecnoFixLogin: FC<TecnoFixLoginProps> = ({
+  onLoginSuccess,
+  onNavigateToRegister,
+  notice,
+  initialEmail = "",
+}: TecnoFixLoginProps) => {
+  const [email, setEmail] = useState<string>(initialEmail);
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
@@ -52,12 +63,26 @@ const TecnoFixLogin: FC<TecnoFixLoginProps> = ({ onLoginSuccess, notice }: Tecno
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setError("");
+
+    // Mismas validaciones y mensajes que el backend (USU-001), antes de llamarlo.
+    if (!email.trim()) {
+      setError(requiredFieldMessage("Correo electrónico"));
+      return;
+    }
+    if (!password) {
+      setError(requiredFieldMessage("Contraseña"));
+      return;
+    }
+    if (!isValidEmail(email.trim())) {
+      setError(VALIDATION_MESSAGES.invalidEmail);
+      return;
+    }
+
     setLoading(true);
     try {
-      // Llama a POST /api/auth/login. El backend valida formato de correo,
-      // campos vacíos y credenciales según la ERS (USU-001) y devuelve el
-      // mensaje exacto a mostrar si algo falla.
-      const user = await login({ email, password });
+      // Llama a POST /api/auth/login. El backend vuelve a validar y comprueba las
+      // credenciales; devuelve el mensaje exacto a mostrar si algo falla.
+      const user = await login({ email: email.trim(), password });
       onLoginSuccess?.(user);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");
@@ -73,20 +98,7 @@ const TecnoFixLogin: FC<TecnoFixLoginProps> = ({ onLoginSuccess, notice }: Tecno
         <div style={styles.formSide}>
           <div style={styles.brand}>
             <span style={styles.brandIcon}>
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width={20} height={20}>
-                <path
-                  d="M12 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z"
-                  stroke="#0F172A"
-                  strokeWidth={1.8}
-                />
-                <path
-                  d="M19.4 13.5a7.6 7.6 0 000-3l1.9-1.5-1.5-2.6-2.3.6a7.7 7.7 0 00-2.6-1.5L14.5 3h-3l-.4 2.5a7.7 7.7 0 00-2.6 1.5l-2.3-.6-1.5 2.6L6.6 10.5a7.6 7.6 0 000 3l-1.9 1.5 1.5 2.6 2.3-.6a7.7 7.7 0 002.6 1.5l.4 2.5h3l.4-2.5a7.7 7.7 0 002.6-1.5l2.3.6 1.5-2.6-1.9-1.5z"
-                  stroke="#0F172A"
-                  strokeWidth={1.8}
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                />
-              </svg>
+              <TecnoFixGear size={24} />
             </span>
             <span style={styles.brandName}>TecnoFix</span>
           </div>
@@ -112,7 +124,7 @@ const TecnoFixLogin: FC<TecnoFixLoginProps> = ({ onLoginSuccess, notice }: Tecno
             </p>
           )}
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} noValidate>
             <div style={styles.field}>
               <label htmlFor="email" style={styles.label}>
                 Correo electrónico
@@ -163,7 +175,6 @@ const TecnoFixLogin: FC<TecnoFixLoginProps> = ({ onLoginSuccess, notice }: Tecno
                     e.currentTarget.style.boxShadow = "none";
                   }}
                   required
-                  minLength={8}
                 />
                 <button
                   type="button"
@@ -195,15 +206,19 @@ const TecnoFixLogin: FC<TecnoFixLoginProps> = ({ onLoginSuccess, notice }: Tecno
                     </p>
                     )}
             <button type="submit" style={styles.btnPrimary} disabled={loading}>
-              {loading ? "Ingresando..." : "Iniciar sesión"}
+              {loading ? "Iniciando sesión..." : "Iniciar sesión"}
             </button>
           </form>
 
           <p style={styles.signupLine}>
             ¿No tienes una cuenta?{" "}
-            <a href="#" style={styles.signupLink}>
+            <button
+              type="button"
+              onClick={onNavigateToRegister}
+              style={styles.signupLink}
+            >
               Crear cuenta
-            </a>
+            </button>
           </p>
         </div>
 
@@ -369,9 +384,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: "#94A3B8",
   },
   signupLink: {
+    background: "none",
+    border: "none",
     color: "#059669",
     fontWeight: 700,
     textDecoration: "none",
+    cursor: "pointer",
+    fontSize: "inherit",
+    fontFamily: "inherit",
+    padding: 0,
   },
   welcomeSide: {
     background: "#F1F5F9",

@@ -79,16 +79,16 @@ namespace TecnoFix.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        public async Task changePassword(int userId, ChangePasswordRequestDTO? request)
+        public async Task changePassword(Guid userId, ChangePasswordRequestDTO? request)
         {
-            if (userId <= 0)
+            if (userId == Guid.Empty)
             {
                 throw new AuthException(401, "Debe iniciar sesión nuevamente.");
             }
 
             if (request is null || string.IsNullOrWhiteSpace(request.currentPassword))
             {
-                throw new AuthException(400, "Debe completar el campo contraseña actual.");
+                throw new AuthException(400, "Debe completar el campo Contraseña actual");
             }
 
             var currentPasswordHash = await userRepository.findPasswordById(userId)
@@ -107,24 +107,24 @@ namespace TecnoFix.Services
 
             if (string.IsNullOrWhiteSpace(newPassword))
             {
-                throw new AuthException(400, "Debe completar el campo nueva contraseña.");
+                throw new AuthException(400, "Debe completar el campo Nueva contraseña");
             }
 
             if (string.IsNullOrWhiteSpace(request.confirmPassword))
             {
-                throw new AuthException(400, "Debe completar el campo confirmación de la nueva contraseña.");
+                throw new AuthException(400, "Debe completar el campo Confirmación de la nueva contraseña");
             }
 
             if (newPassword.Length < 8
                 || !newPassword.Any(char.IsLetter)
                 || !newPassword.Any(char.IsDigit))
             {
-                throw new AuthException(400, "La contraseña debe tener al menos 8 caracteres, una letra y un número.");
+                throw new AuthException(400, "La contraseña debe tener al menos 8 caracteres, una letra y un número");
             }
 
             if (!string.Equals(newPassword, request.confirmPassword, StringComparison.Ordinal))
             {
-                throw new AuthException(400, "Las contraseñas ingresadas no coinciden.");
+                throw new AuthException(400, "Las contraseñas ingresadas no coinciden");
             }
 
             var newPasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);

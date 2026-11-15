@@ -110,7 +110,6 @@ body { margin: 0; background: #E2E8F0; }
   .tf-profileIdentity > div:last-child { min-width: 0; }
   .tf-profileAvatar { width: 64px; height: 64px; flex: none; font-size: 24px; }
   .tf-profileIdentity h2 { margin: 0 0 8px; font-size: 20px; line-height: 1.4; letter-spacing: 0; overflow-wrap: anywhere; }
-  .tf-profileRole { display: inline-block; color: var(--tf-green-dark); font-size: 13px; font-weight: 600; }
   .tf-profileDetails { max-width: 760px; margin: 0; border-top: 1px solid #CBD5E1; }
   .tf-profileDetails > div { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--tf-line); }
   .tf-profileDetails dt { color: var(--tf-muted); font-size: 13px; line-height: 1.6; }
@@ -232,6 +231,29 @@ body { margin: 0; background: #E2E8F0; }
   .tf-muted { color: var(--tf-soft); }
   .tf-empty { padding: 28px; text-align: center; color: var(--tf-soft); }
 
+  .tf-clientOrderList { margin: 0; padding: 8px 12px; list-style: none; overflow-y: auto; }
+  .tf-clientOrderList li + li { border-top: 1px solid var(--tf-line); }
+  .tf-clientOrderRow {
+    width: 100%; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    gap: 8px; padding: 12px; border: 0; border-radius: 12px; background: transparent;
+    color: inherit; font: inherit; font-size: 14px; text-align: left; cursor: pointer;
+  }
+  .tf-clientOrderRow:disabled { cursor: wait; }
+  .tf-clientOrderRow:hover, .tf-clientOrderRow[aria-pressed="true"] { background: #ECFDF5; }
+  .tf-clientOrderRow:focus-visible { outline: 2px solid var(--tf-green); outline-offset: -2px; }
+  .tf-clientOrderRow .tf-device { display: block; overflow-wrap: anywhere; }
+  .tf-clientOrderBody { min-height: 0; padding: 8px 20px 20px; overflow-y: auto; font-size: 14px; }
+  .tf-clientOrderBody h3 { margin: 20px 0 8px; font-size: 16px; }
+  .tf-clientOrderBody .tf-actions { margin-top: 16px; }
+  .tf-clientOrderFacts { margin: 0; display: grid; gap: 8px; }
+  .tf-clientOrderFacts div { padding-bottom: 8px; border-bottom: 1px solid var(--tf-line); }
+  .tf-clientOrderFacts dt { color: var(--tf-muted); font-size: 12px; }
+  .tf-clientOrderFacts dd { margin: 4px 0 0; overflow-wrap: anywhere; }
+
+  .tf-alert { border-radius: 12px; padding: 11px 14px; margin-bottom: 12px; font-size: 13px; font-weight: 600; line-height: 1.5; }
+  .tf-alertError { color: #F56558; background: #FEE2E2; }
+  .tf-alertSuccess { color: #065F46; background: #D1FAE5; }
+
   .tf-sideStack { min-height: 0; display: flex; flex-direction: column; gap: 12px; }
   .tf-sideStack .tf-panel { flex: 1; overflow-y: auto; }
   .tf-filters { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 20px; }
@@ -288,6 +310,7 @@ body { margin: 0; background: #E2E8F0; }
     .tf-sideStack .tf-panel { overflow: visible; }
     .tf-cardGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .tf-mainGrid { grid-template-columns: 1fr; }
+    .tf-clientOrderList { max-height: 320px; }
   }
   @media (max-width: 900px) {
     .tf-dashboard { padding: 0; }
@@ -314,3 +337,7 @@ body { margin: 0; background: #E2E8F0; }
     .tf-search { max-width: none; }
     .tf-panelHeader { align-items: flex-start; flex-direction: column; }
   }
+
+.tf-comingSoon { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center; }
+.tf-comingSoon h1 { margin: 0 0 8px; font-size: 28px; color: #0F172A; }
+.tf-comingSoon p { margin: 0; font-size: 15px; color: #64748B; }

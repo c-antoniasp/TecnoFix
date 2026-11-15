@@ -13,14 +13,24 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
+// Una sola instancia: si se crea una nueva en cada DbContext, EF Core arma un proveedor
+// interno por petición y a las 20 lanza ManyServiceProvidersCreatedWarning (error 500).
+var enumNameTranslator = new NpgsqlNullNameTranslator();
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        npgsql => npgsql.MapEnum<UserRole>("user_role", nameTranslator: new NpgsqlNullNameTranslator())));
+        npgsql => npgsql
+            .MapEnum<UserRole>("user_role", nameTranslator: enumNameTranslator)
+            .MapEnum<OrderStatus>("order_status", nameTranslator: enumNameTranslator)));
+
+// Orígenes permitidos: en producción se definen con Cors__AllowedOrigins__0, __1, ...
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? ["http://localhost:5173"];
 
 builder.Services.AddCors(options =>
     options.AddPolicy("Frontend", policy =>
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials()));
@@ -62,12 +72,32 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 context.Response.Headers["WWW-Authenticate"] = JwtBearerDefaults.AuthenticationScheme;
                 await context.Response.WriteAsJsonAsync(new
                 {
-                    message = "Debe iniciar sesión para cambiar su contraseña."
+                    message = context.Request.Path == "/api/auth/change-password"
+                        ? "Debe iniciar sesión para cambiar su contraseña."
+                        : "Debe iniciar sesión para realizar esta acción."
                 });
             }
         };
     });
 builder.Services.AddAuthorization();
+
+// Inyección de dependencias del registro de clientes (USU-002).
+builder.Services.AddScoped<IClientRepository, ClientRepository>();
+// Correo con Brevo (Brevo__ApiKey y Brevo__SenderEmail); sin ellos, los correos solo se registran en el log.
+builder.Services.AddHttpClient<IEmailService, EmailService>();
+builder.Services.AddScoped<IClientService, ClientService>();
+
+// Inyección de dependencias del registro de técnicos.
+builder.Services.AddScoped<IEngineerRepository, EngineerRepository>();
+builder.Services.AddScoped<ITechnicianService, TechnicianService>();
+
+// Catálogo de tipos de equipo (ADM-001).
+builder.Services.AddScoped<IEquipmentTypeRepository, EquipmentTypeRepository>();
+builder.Services.AddScoped<IEquipmentTypeService, EquipmentTypeService>();
+
+// Órdenes de reparación (ORD-001).
+builder.Services.AddScoped<IRepairOrderRepository, RepairOrderRepository>();
+builder.Services.AddScoped<IRepairOrderService, RepairOrderService>();
 
 var app = builder.Build();
 
