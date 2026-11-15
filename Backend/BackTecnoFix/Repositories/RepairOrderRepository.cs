@@ -36,5 +36,30 @@ namespace TecnoFix.Repositories
             await _dbContext.SaveChangesAsync();
             return order;
         }
+
+        public async Task<RepairOrder?> findById(int orderId)
+        {
+            return await _dbContext.repairOrders
+                .FirstOrDefaultAsync(o => o.id == orderId);
+        }
+
+        public async Task<List<RepairOrder>> findByStatuses(params OrderStatus[] statuses)
+        {
+            return await _dbContext.repairOrders
+                .Include(o => o.equipmentType)
+                .Where(o => statuses.Contains(o.status))
+                .OrderBy(o => o.receivedAt)
+                .ToListAsync();
+        }
+
+        public void addOrderLog(OrderLog orderLog)
+        {
+            _dbContext.orderLogs.Add(orderLog);
+        }
+
+        public async Task saveChanges()
+        {
+            await _dbContext.SaveChangesAsync();
+        }
     }
 }

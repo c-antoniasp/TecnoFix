@@ -131,7 +131,7 @@ public class TechnicianFlowTests
             ["Jwt:ExpirationMinutes"] = "60"
         }).Build();
         return (
-            new TechnicianService(userRepository, new EngineerRepository(context), emailService),
+            new TechnicianService(userRepository, new EngineerRepository(context), emailService, new RepairOrderRepository(context)),
             new AuthService(userRepository, configuration));
     }
 

@@ -74,7 +74,7 @@ public class AppDbContext : DbContext
             e.Property(x => x.deliveredAt).HasColumnName("delivered_at");
             e.HasOne<User>().WithMany().HasForeignKey(x => x.clientId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<User>().WithMany().HasForeignKey(x => x.technicianId).OnDelete(DeleteBehavior.Restrict);
-            e.HasOne<EquipmentType>().WithMany().HasForeignKey(x => x.equipmentTypeId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.equipmentType).WithMany().HasForeignKey(x => x.equipmentTypeId).OnDelete(DeleteBehavior.Restrict);
         });
 
         // Bitácora de cambios de estado de cada orden.

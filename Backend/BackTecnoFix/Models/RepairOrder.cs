@@ -23,6 +23,7 @@ namespace TecnoFix.Models
         public DateTime receivedAt { get; set; } = DateTime.UtcNow;
         public DateTime? deliveredAt { get; set; }
 
+        public EquipmentType? equipmentType { get; set; }
         public List<OrderLog> logs { get; set; } = new();
     }
 }

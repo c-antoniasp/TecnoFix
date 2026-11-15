@@ -6,6 +6,7 @@ import { TecnoFixRegister } from "./components/TecnoFixRegister";
 import TecnoFixRegisterTechnician from "./components/TecnoFixRegisterTechnician";
 import TecnoFixEquipmentTypes from "./components/TecnoFixEquipmentTypes";
 import TecnoFixRegisterOrder from "./components/TecnoFixRegisterOrder";
+import TecnoFixDiagnosisPage from "./components/TecnoFixDiagnosisPage";
 import { logout as apiLogout } from "./Api/auth";
 import { ApiError } from "./Api/client";
 import { registerTechnician } from "./Api/technician";
@@ -35,6 +36,7 @@ function App() {
     else if (section === "Técnicos") setView("registerTechnician");
     else if (section === "Tipos de equipo") setView("equipmentTypes");
     else if (section === "Órdenes") setView("registerOrder");
+    else if (section === "Diagnóstico") setView("diagnosis");
     else setView("dashboard");
   };
 
@@ -144,6 +146,18 @@ function App() {
       <TecnoFixRegisterOrder
         userName={user.name}
         role={role}
+        onNavigate={handleNavigate}
+        onLogout={handleLogout}
+        onSessionExpired={(message) => handleRequireLogin(message, "error")}
+      />
+    );
+  }
+
+  // Diagnóstico y presupuesto (ORD-002): solo técnicos.
+  if (view === "diagnosis" && user.role === "TECHNICIAN") {
+    return (
+      <TecnoFixDiagnosisPage
+        userName={user.name}
         onNavigate={handleNavigate}
         onLogout={handleLogout}
         onSessionExpired={(message) => handleRequireLogin(message, "error")}

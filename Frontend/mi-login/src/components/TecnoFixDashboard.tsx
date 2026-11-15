@@ -19,15 +19,17 @@ interface DashboardLayoutProps {
   onNavigate?: (label: string) => void;
   onLogout?: () => void;
   navigationDisabled?: boolean;
+  // Clase extra para pantallas con estilos propios (por ejemplo, tf-diagnosis).
+  className?: string;
 }
 
-export const DashboardLayout: FC<DashboardLayoutProps> = ({ children, active, role, userName, onNavigate, onLogout, navigationDisabled = false }) => {
+export const DashboardLayout: FC<DashboardLayoutProps> = ({ children, active, role, userName, onNavigate, onLogout, navigationDisabled = false, className }) => {
   const navItems = role === "Cliente"
     ? ["Resumen"]
-    : role === "Administrador" ? ["Resumen", "Órdenes", "Estadísticas", "Técnicos", "Tipos de equipo"] : ["Resumen", "Órdenes", "Mis tareas"];
+    : role === "Administrador" ? ["Resumen", "Órdenes", "Estadísticas", "Técnicos", "Tipos de equipo"] : ["Resumen", "Órdenes", "Diagnóstico", "Mis tareas"];
 
   return (
-    <div className="tf-dashboard">
+    <div className={className ? `tf-dashboard ${className}` : "tf-dashboard"}>
       <div className="tf-shell">
         <aside className="tf-sidebar">
           <div className="tf-brand">
@@ -49,7 +51,7 @@ export const DashboardLayout: FC<DashboardLayoutProps> = ({ children, active, ro
                 onClick={() => onNavigate?.(item)}
                 disabled={navigationDisabled}
               >
-                <span className="tf-navIcon">{item === "Resumen" ? "▣" : item === "Órdenes" ? "▤" : item === "Técnicos" ? "⚒" : item === "Tipos de equipo" ? "▦" : "◷"}</span>
+                <span className="tf-navIcon">{item === "Resumen" ? "▣" : item === "Órdenes" ? "▤" : item === "Técnicos" ? "⚒" : item === "Tipos de equipo" ? "▦" : item === "Diagnóstico" ? "✚" : "◷"}</span>
                 {item}
               </button>
             ))}
