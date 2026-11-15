@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>TecnoFix.Ord002.Seed</RootNamespace>
+    <AssemblyName>TecnoFix.Ord002.Seed</AssemblyName>
+    <!-- Mismo UserSecretsId que el backend: reutiliza su cadena de conexion. -->
+    <UserSecretsId>797c9d35-8287-4a04-ac92-742c0ac76c78</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Npgsql" Version="10.0.3" />
+  </ItemGroup>
+
+</Project>
