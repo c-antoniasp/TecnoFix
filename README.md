@@ -176,6 +176,7 @@ TecnoFix/
 │       ├── vite.config.js
 │       └── vitest.config.js
 │
+├── CONVENTIONS.md               # Convenciones de código, capas, conexión y Git del equipo
 └── README.md
 ```
 
@@ -319,11 +320,15 @@ En el plan gratuito de Render el servicio se suspende tras 15 minutos sin uso; l
 - Formato de los commits, en inglés: `[DevNombre] tipo(alcance): descripción`, por ejemplo `[DevCatalina] feat(orders): ORD-001 register repair order`. Tipos habituales: `feat`, `fix`, `refactor`, `test`, `chore` y `docs`.
 - Antes de integrar en `test`, actualiza tu rama con lo último de `test` para resolver los conflictos en tu rama y no en la compartida.
 
+Las reglas completas de ramas, commits y pull requests están en [CONVENTIONS.md](CONVENTIONS.md#7-control-de-versiones-github).
+
 ---
 
 ## Documentación
 
 El desarrollo se basa en la **Especificación de Requerimientos de Software (ERS)** de TecnoFix, que define los requerimientos funcionales, no funcionales, reglas de negocio, roles y validaciones del sistema.
+
+Las convenciones que sigue el equipo están resumidas en [CONVENTIONS.md](CONVENTIONS.md), a partir del **Estándar de Programación de TecnoFix (Codexia)**: notación e idiomas del código, arquitectura por capas, base de datos, conexión entre frontend y backend, paleta de colores y uso de Git y GitHub.
 
 ---
 
