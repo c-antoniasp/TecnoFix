@@ -83,7 +83,7 @@ Cada cambio de estado queda registrado en una bitácora con fecha, hora y usuari
 | ADM-001 | Catálogo de tipos de equipo: crear, editar, habilitar y deshabilitar (solo administrador) | ✅ | ✅ |
 | ORD-001 | Registro de órdenes de reparación (administrador y técnico) | ✅ | ✅ |
 | ORD-002 | Diagnóstico técnico y presupuesto (técnico) | ✅ | ✅ |
-| — | Consulta de órdenes y aprobación o rechazo del presupuesto (cliente) | ✅ | ✅ |
+| ORD-003 | Consulta de órdenes y aprobación o rechazo del presupuesto (cliente) | ✅ | ✅ |
 | — | Panel por rol (administrador, técnico y cliente) | — | ✅ (secciones pendientes muestran «Próximamente») |
 
 Pendientes: actualización del estado de la reparación, registro de entrega, historial visible de la orden y estadísticas.
