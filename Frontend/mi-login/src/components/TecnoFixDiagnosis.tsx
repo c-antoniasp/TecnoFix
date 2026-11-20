@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FC, FormEvent } from "react";
 import TecnoFixGear from "./TecnoFixGear";
+import ConfirmDialog from "./ConfirmDialog";
 // @ts-ignore
 import "./TecnoFixDashboard.css";
 // @ts-ignore
@@ -30,6 +31,10 @@ export interface DiagnosisFormValues {
   laborCost: number;
   partsCost: number;
 }
+
+type PendingConfirmation =
+  | { kind: "open"; order: DiagnosisOrder }
+  | { kind: "quote"; order: DiagnosisOrder; values: DiagnosisFormValues };
 
 interface TecnoFixDiagnosisProps {
   userName?: string;
@@ -138,6 +143,9 @@ const TecnoFixDiagnosis: FC<TecnoFixDiagnosisProps> = ({
   const [partsCost, setPartsCost] = useState<string>("");
   const [formError, setFormError] = useState<string | null>(null);
   const [search, setSearch] = useState<string>("");
+  const [confirmation, setConfirmation] = useState<PendingConfirmation | null>(
+    null
+  );
 
   const displayName = userName?.trim() || "Técnico";
 
@@ -146,6 +154,7 @@ const TecnoFixDiagnosis: FC<TecnoFixDiagnosisProps> = ({
     setLaborCost("");
     setPartsCost("");
     setFormError(null);
+    setConfirmation(null);
   }, [selectedOrder?.orderId]);
 
   const filteredOrders = useMemo(() => {
@@ -226,15 +235,82 @@ const TecnoFixDiagnosis: FC<TecnoFixDiagnosisProps> = ({
     }
 
     setFormError(null);
-    onSubmit(selectedOrder.orderId, {
-      technicalDiagnosis: trimmedDiagnosis,
-      laborCost: labor,
-      partsCost: parts,
+    setConfirmation({
+      kind: "quote",
+      order: selectedOrder,
+      values: {
+        technicalDiagnosis: trimmedDiagnosis,
+        laborCost: labor,
+        partsCost: parts,
+      },
     });
+  };
+
+  const handleOrderAction = (order: DiagnosisOrder): void => {
+    // Abrir una orden recibida cambia su estado de forma irreversible:
+    // se pide confirmación antes de llamar al backend.
+    if (order.status === "RECEIVED") {
+      setConfirmation({ kind: "open", order });
+      return;
+    }
+
+    onSelectOrder(order);
+  };
+
+  const handleConfirm = (): void => {
+    if (!confirmation) return;
+
+    const pending = confirmation;
+    setConfirmation(null);
+
+    if (pending.kind === "open") {
+      onSelectOrder(pending.order);
+      return;
+    }
+
+    onSubmit(pending.order.orderId, pending.values);
   };
 
   return (
     <div className="tf-dashboard tf-diagnosis">
+      {confirmation && (
+        <ConfirmDialog
+          title={
+            confirmation.kind === "open"
+              ? "Confirmar apertura de orden"
+              : "Confirmar registro del presupuesto"
+          }
+          message={
+            confirmation.kind === "open" ? (
+              <>
+                ¿Estás seguro de abrir la orden{" "}
+                <strong>#{confirmation.order.orderNumber}</strong>? Pasará a{" "}
+                <strong>En diagnóstico</strong> y no podrá volver a{" "}
+                <strong>Recibida</strong>.
+              </>
+            ) : (
+              <>
+                ¿Estás seguro de registrar el diagnóstico y el presupuesto de la
+                orden <strong>#{confirmation.order.orderNumber}</strong> por{" "}
+                <strong>
+                  {money.format(
+                    confirmation.values.laborCost + confirmation.values.partsCost
+                  )}
+                </strong>
+                ? La orden pasará a <strong>Presupuestada</strong>.
+              </>
+            )
+          }
+          confirmLabel={
+            confirmation.kind === "open"
+              ? "Sí, abrir orden"
+              : "Sí, registrar presupuesto"
+          }
+          onConfirm={handleConfirm}
+          onCancel={() => setConfirmation(null)}
+        />
+      )}
+
       <div className="tf-shell">
         <aside className="tf-sidebar">
           <div className="tf-brand">
@@ -425,7 +501,7 @@ const TecnoFixDiagnosis: FC<TecnoFixDiagnosisProps> = ({
                                 <button
                                   className="tf-button tf-buttonGhost tf-buttonSmall"
                                   type="button"
-                                  onClick={() => onSelectOrder(order)}
+                                  onClick={() => handleOrderAction(order)}
                                   disabled={
                                     openingOrderId !== null ||
                                     submitting ||

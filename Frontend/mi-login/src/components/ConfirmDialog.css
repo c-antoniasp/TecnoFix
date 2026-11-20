@@ -1,0 +1,72 @@
+/* Doble confirmación para acciones irreversibles (ORD-002). */
+
+.tf-confirmOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.7);
+}
+
+.tf-confirmDialog {
+  width: 100%;
+  max-width: 440px;
+  padding: 26px 28px 22px;
+  border-radius: 18px;
+  background: #FFFFFF;
+  box-shadow: 0 30px 60px -20px rgba(15, 23, 42, 0.45);
+  box-sizing: border-box;
+}
+
+.tf-confirmTitle {
+  margin: 0 0 10px;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0F172A;
+}
+
+.tf-confirmText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #475569;
+}
+
+.tf-confirmText strong {
+  color: #0F172A;
+}
+
+.tf-confirmWarning {
+  margin: 14px 0 0;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: #FEF3C7;
+  color: #92400E;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tf-confirmActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.tf-confirmActions .tf-button {
+  min-height: 40px;
+}
+
+@media (max-width: 480px) {
+  .tf-confirmActions {
+    flex-direction: column-reverse;
+  }
+
+  .tf-confirmActions .tf-button {
+    width: 100%;
+  }
+}

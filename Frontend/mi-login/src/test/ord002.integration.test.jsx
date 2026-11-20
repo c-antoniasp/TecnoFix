@@ -120,8 +120,16 @@ describe("ORD-002 en el frontend", () => {
     const getCall = backend.calls.find((call) => call.method === "GET");
     expect(getCall.headers.Authorization).toMatch(/^Bearer /);
 
-    // Abrir la orden: debe llamar al PATCH y reflejar el nuevo estado.
+    // Abrir la orden: primero debe pedir confirmación.
     await user.click(within(row).getByRole("button", { name: /^abrir$/i }));
+
+    const openDialog = await screen.findByRole("dialog");
+    expect(openDialog).toHaveTextContent(/#1001/);
+    expect(openDialog).toHaveTextContent(/no se puede deshacer/i);
+
+    await user.click(
+      within(openDialog).getByRole("button", { name: /sí, abrir orden/i })
+    );
 
     await waitFor(() => {
       expect(within(row).getByText("En diagnóstico")).toBeInTheDocument();
@@ -143,6 +151,17 @@ describe("ORD-002 en el frontend", () => {
 
     await user.click(
       screen.getByRole("button", { name: /registrar diagnóstico y presupuesto/i })
+    );
+
+    // Presupuestar también exige doble confirmación.
+    const quoteDialog = await screen.findByRole("dialog");
+    expect(quoteDialog).toHaveTextContent(/#1001/);
+    expect(quoteDialog).toHaveTextContent(money.format(40000));
+
+    await user.click(
+      within(quoteDialog).getByRole("button", {
+        name: /sí, registrar presupuesto/i,
+      })
     );
 
     // Mensaje de éxito con el total devuelto por el backend.
@@ -173,6 +192,11 @@ describe("ORD-002 en el frontend", () => {
     const row = await screen.findByRole("row", { name: /#1001/i });
     await user.click(within(row).getByRole("button", { name: /^abrir$/i }));
 
+    const dialog = await screen.findByRole("dialog");
+    await user.click(
+      within(dialog).getByRole("button", { name: /sí, abrir orden/i })
+    );
+
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "No se pudo abrir la orden"
     );
@@ -190,6 +214,11 @@ describe("ORD-002 en el frontend", () => {
     const row = await screen.findByRole("row", { name: /#1001/i });
     await user.click(within(row).getByRole("button", { name: /^abrir$/i }));
 
+    const dialog = await screen.findByRole("dialog");
+    await user.click(
+      within(dialog).getByRole("button", { name: /sí, abrir orden/i })
+    );
+
     await waitFor(() => {
       expect(within(row).getByText("En diagnóstico")).toBeInTheDocument();
     });
@@ -198,9 +227,73 @@ describe("ORD-002 en el frontend", () => {
       screen.getByRole("button", { name: /registrar diagnóstico y presupuesto/i })
     );
 
+    // La validación ocurre antes de la confirmación: no debe abrirse el diálogo.
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Debe completar el campo Diagnóstico técnico"
     );
     expect(backend.calls.some((call) => call.method === "POST")).toBe(false);
+  });
+
+  it("no abre la orden si se cancela la confirmación", async () => {
+    const user = userEvent.setup();
+    const backend = createBackend();
+    vi.stubGlobal("fetch", backend.fetchMock);
+
+    await login();
+
+    const row = await screen.findByRole("row", { name: /#1001/i });
+    await user.click(within(row).getByRole("button", { name: /^abrir$/i }));
+
+    const dialog = await screen.findByRole("dialog");
+    await user.click(
+      within(dialog).getByRole("button", { name: /^cancelar$/i })
+    );
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(backend.calls.some((call) => call.method === "PATCH")).toBe(false);
+    expect(within(row).getByText("Recibida")).toBeInTheDocument();
+  });
+
+  it("no registra el presupuesto si se cancela la confirmación", async () => {
+    const user = userEvent.setup();
+    const backend = createBackend();
+    vi.stubGlobal("fetch", backend.fetchMock);
+
+    await login();
+
+    const row = await screen.findByRole("row", { name: /#1001/i });
+    await user.click(within(row).getByRole("button", { name: /^abrir$/i }));
+
+    const openDialog = await screen.findByRole("dialog");
+    await user.click(
+      within(openDialog).getByRole("button", { name: /sí, abrir orden/i })
+    );
+
+    await waitFor(() => {
+      expect(within(row).getByText("En diagnóstico")).toBeInTheDocument();
+    });
+
+    await user.type(
+      screen.getByLabelText(/diagnóstico técnico/i),
+      "Limpieza interna y cambio de pasta térmica."
+    );
+    await user.type(screen.getByLabelText(/costo de mano de obra/i), "25000");
+    await user.type(screen.getByLabelText(/costo de repuestos/i), "15000");
+
+    await user.click(
+      screen.getByRole("button", { name: /registrar diagnóstico y presupuesto/i })
+    );
+
+    const quoteDialog = await screen.findByRole("dialog");
+    await user.click(
+      within(quoteDialog).getByRole("button", { name: /^cancelar$/i })
+    );
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(backend.calls.some((call) => call.method === "POST")).toBe(false);
+    expect(screen.getByLabelText(/diagnóstico técnico/i)).toHaveValue(
+      "Limpieza interna y cambio de pasta térmica."
+    );
   });
 });
