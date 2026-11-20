@@ -10,11 +10,11 @@ namespace TecnoFix.Controller;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class ClienteController : ControllerBase
+public class ClientController : ControllerBase
 {
     private readonly IClientService _clientService;
 
-    public ClienteController(IClientService clientService)
+    public ClientController(IClientService clientService)
     {
         _clientService = clientService;
     }
@@ -25,11 +25,11 @@ public class ClienteController : ControllerBase
     /// </summary>
     /// <param name="request">Datos del cliente a registrar (Nombre, Correo, Rut, Teléfono).</param>
     /// <returns>Resultado del registro con código de estado HTTP adecuado.</returns>
-    [HttpPost("registro")]
+    [HttpPost("register")]
     [ProducesResponseType(typeof(RegisterClientResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(RegisterClientResponseDto), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(RegisterClientResponseDto), StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> RegistrarCliente([FromBody] RegisterClientRequestDto request)
+    public async Task<IActionResult> registerClient([FromBody] RegisterClientRequestDto request)
     {
         var result = await _clientService.RegisterClientAsync(request);
 
