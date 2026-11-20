@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace TecnoFix.Controllers;
+namespace TecnoFix.Controller;
 
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class ChangePasswordValidationAttribute : ActionFilterAttribute

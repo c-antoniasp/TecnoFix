@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using TecnoFix.DTO;
 using TecnoFix.Services;
 
-namespace TecnoFix.Controllers;
+namespace TecnoFix.Controller;
 
 [ApiController]
 [Route("api/auth")]
