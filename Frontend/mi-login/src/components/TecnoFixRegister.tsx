@@ -60,7 +60,7 @@ export const TecnoFixRegister: FC<TecnoFixRegisterProps> = ({
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/cliente/registro`, {
+      const response = await fetch(`${API_BASE_URL}/client/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
