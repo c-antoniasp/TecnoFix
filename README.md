@@ -142,8 +142,7 @@ TecnoFix/
 │
 ├── Backend/
 │   ├── BackTecnoFix/
-│   │   ├── Controller/          # ClientController, TechnicianController, EquipmentTypeController, RepairOrderController
-│   │   ├── Controllers/         # AuthController (login, logout, cambio de contraseña)
+│   │   ├── Controller/          # AuthController, ClientController, TechnicianController, EquipmentTypeController, RepairOrderController
 │   │   ├── Data/                # AppDbContext y repositorio de clientes
 │   │   ├── DTO/                 # Objetos de entrada y salida de la API
 │   │   ├── Exceptions/          # BusinessException (mensaje y código HTTP de la ERS)
