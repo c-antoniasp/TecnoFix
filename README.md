@@ -142,7 +142,7 @@ TecnoFix/
 │
 ├── Backend/
 │   ├── BackTecnoFix/
-│   │   ├── Controller/          # ClienteController, TechnicianController, EquipmentTypeController, RepairOrderController
+│   │   ├── Controller/          # ClientController, TechnicianController, EquipmentTypeController, RepairOrderController
 │   │   ├── Controllers/         # AuthController (login, logout, cambio de contraseña)
 │   │   ├── Data/                # AppDbContext y repositorio de clientes
 │   │   ├── DTO/                 # Objetos de entrada y salida de la API
@@ -191,7 +191,7 @@ Los directorios `bin/`, `obj/`, `dist/` y `node_modules/` se generan automática
 | `POST` | `/api/auth/login` | Inicia sesión y deja el JWT en la cookie `access_token` | Público |
 | `POST` | `/api/auth/logout` | Cierra la sesión eliminando la cookie | Público |
 | `PUT` | `/api/auth/change-password` | Cambia la contraseña del usuario autenticado | Usuario con sesión |
-| `POST` | `/api/cliente/registro` | Registra un cliente con contraseña temporal | Público |
+| `POST` | `/api/client/register` | Registra un cliente con contraseña temporal | Público |
 | `POST` | `/api/technician` | Registra un técnico | Administrador |
 | `GET` | `/api/equipment-types` | Lista todos los tipos de equipo | Administrador |
 | `GET` | `/api/equipment-types/enabled` | Lista los tipos de equipo habilitados | Usuario con sesión |
